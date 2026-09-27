@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { dbWrite, dbRead, supabase } from '../../config/database';
+import { isNeonConfigured, queryWrite as neonQueryWrite } from '../../config/neonPool';
 import { AuthRequest, AuthUser } from '../../middleware/auth.middleware';
 import { isValidEmail } from '../../validators/email.validator';
 import { escapeOrSegment } from '../../validators/postgrest';
@@ -304,9 +305,11 @@ export const login = async (req: Request, res: Response) => {
       }
     }
 
-    let approval = (isMasterAdmin || isDesignated)
-      ? { status: 'APPROVED' as const, role: 'ADMIN' as const, username: user.name, batch: undefined, avatar_url: user.avatar_url || undefined }
-      : getUserApproval(user.email, user.role);
+    let approval = getUserApproval(user.email, user.role);
+    if (isMasterAdmin || isDesignated) {
+      approval.role = 'ADMIN';
+      approval.status = 'APPROVED';
+    }
 
     // Auto-approve college accounts and designated admins if pending
     if (approval.status === 'PENDING' && (user.email.endsWith('@mail.jiit.ac.in') || user.email.endsWith('@jiit.ac.in') || isDesignated)) {
@@ -386,14 +389,14 @@ export const login = async (req: Request, res: Response) => {
       token,
       user: {
         id: user.id,
-        name: user.name,
+        name: (approval as any)?.name || user.name,
         email: user.email,
-        roll_number: user.roll_number,
+        roll_number: (approval as any)?.roll_number || user.roll_number || null,
         role: effectiveRole,
         status: approval.status,
-        username: user.username || (approval as any).username || undefined,
-        batch: user.batch || (approval as any).batch || undefined,
-        avatar_url: user.avatar_url || (approval as any).avatar_url || undefined
+        username: (approval as any)?.username || user.username || undefined,
+        batch: (approval as any)?.batch || user.batch || undefined,
+        avatar_url: (approval as any)?.avatar_url || user.avatar_url || undefined
       }
     });
   } catch (err: any) {
@@ -417,32 +420,81 @@ export const resendLoginOtp = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const { data: user, error } = await dbRead
-      .from('users')
-      .select('id, name, email, roll_number, role, created_at')
-      .eq('id', req.user?.id)
-      .single();
+    const userId = req.user?.id;
+    const userEmail = req.user?.email;
 
-    if (error || !user) return res.status(404).json({ status: 'error', message: 'User not found.' });
+    if (!userId && !userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized. Authentication token missing.' });
+    }
 
-    const isMasterAdmin = isSuperAdminEmail(user.email) || isDesignatedAdmin(user.email) || user.role === 'ADMIN';
-    const approval = isMasterAdmin
-      ? { status: 'APPROVED' as const, role: 'ADMIN' as const }
-      : getUserApproval(user.email, user.role);
+    // Try fetching with all profile columns
+    let user: any = null;
+
+    if (userId) {
+      try {
+        const fullSelect = await dbRead
+          .from('users')
+          .select('id, name, email, roll_number, role, created_at, username, batch, avatar_url')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (fullSelect.data) {
+          user = fullSelect.data;
+        }
+      } catch {}
+
+      if (!user) {
+        try {
+          const basicSelect = await dbRead
+            .from('users')
+            .select('id, name, email, roll_number, role, created_at')
+            .eq('id', userId)
+            .maybeSingle();
+          if (basicSelect.data) user = basicSelect.data;
+        } catch {}
+      }
+    }
+
+    if (!user && userEmail) {
+      try {
+        const byEmail = await dbRead
+          .from('users')
+          .select('id, name, email, roll_number, role, created_at')
+          .eq('email', userEmail.toLowerCase())
+          .maybeSingle();
+        if (byEmail.data) user = byEmail.data;
+      } catch {}
+    }
+
+    const email = user?.email || userEmail || '';
+    const isMasterAdmin = isSuperAdminEmail(email) || isDesignatedAdmin(email) || (user && user.role === 'ADMIN');
+    const approval = getUserApproval(email, user?.role || (isMasterAdmin ? 'ADMIN' : 'MEMBER'));
+
+    if (!user && !isMasterAdmin && !approval) {
+      return res.status(404).json({ status: 'error', message: 'User not found.' });
+    }
+
+    const id = user?.id || userId || approval.username || 'user';
+    const name = approval.name || user?.name || req.user?.name || (isMasterAdmin ? 'CICR Admin' : 'Member');
+    const role = isMasterAdmin ? 'ADMIN' : (approval.role || user?.role || req.user?.role || 'MEMBER');
+    const roll_number = approval.roll_number || user?.roll_number || req.user?.roll_number || null;
+    const username = approval.username || user?.username || (email ? email.split('@')[0] : 'operator');
+    const batch = approval.batch || user?.batch || null;
+    const avatar_url = approval.avatar_url || user?.avatar_url || null;
 
     return res.status(200).json({
       status: 'success',
       data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        roll_number: user.roll_number,
-        role: approval.role,
-        status: approval.status,
-        username: user.username || approval.username || undefined,
-        batch: user.batch || approval.batch || undefined,
-        avatar_url: user.avatar_url || approval.avatar_url || undefined,
-        created_at: user.created_at,
+        id,
+        name,
+        email,
+        roll_number,
+        role,
+        status: approval.status || 'APPROVED',
+        username,
+        batch,
+        avatar_url,
+        created_at: user?.created_at || approval.approvedAt || new Date().toISOString(),
         isMasterAdmin
       }
     });
@@ -454,15 +506,12 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    if (!userId) {
+    const userEmail = req.user?.email;
+    if (!userId && !userEmail) {
       return res.status(401).json({ status: 'error', message: 'Unauthorized. Authentication token missing.' });
     }
 
-    const { name, username, batch, avatar_url, profile_pic } = req.body;
-
-    // Strict institutional security policy:
-    // Email and Roll Number / Enrollment Number CANNOT be modified by the user
-    // We intentionally discard any attempt to mutate email or roll_number
+    const { name, username, batch, branch, avatar_url, profile_pic, roll_number, rollNumber } = req.body;
 
     const updates: Record<string, any> = {};
 
@@ -478,7 +527,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
           .from('users')
           .select('id')
           .ilike('username', cleanUsername)
-          .neq('id', userId)
+          .neq('id', userId || '')
           .maybeSingle();
 
         if (existingUser) {
@@ -491,8 +540,14 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
       }
     }
 
-    if (typeof batch === 'string') {
-      updates.batch = batch.trim();
+    const resolvedBatch = (typeof batch === 'string' && batch.trim()) ? batch.trim() : ((typeof branch === 'string' && branch.trim()) ? branch.trim() : '');
+    if (resolvedBatch) {
+      updates.batch = resolvedBatch;
+    }
+
+    const resolvedRoll = (typeof roll_number === 'string' && roll_number.trim()) ? roll_number.trim() : ((typeof rollNumber === 'string' && rollNumber.trim()) ? rollNumber.trim() : '');
+    if (resolvedRoll) {
+      updates.roll_number = resolvedRoll;
     }
 
     const resolvedAvatar = avatar_url !== undefined ? avatar_url : profile_pic;
@@ -503,65 +558,109 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
         status: 'error',
-        message: 'No editable fields provided. Email and enrollment ID are institutional records and cannot be modified.'
+        message: 'No editable fields provided.'
       });
     }
 
-    // Persist changes to PostgreSQL
-    let updatedUser: any = null;
-    try {
-      const { data, error } = await dbWrite
-        .from('users')
-        .update(updates)
-        .eq('id', userId)
-        .select('*')
-        .single();
+    // 1. Fetch current user from DB to verify user record
+    let currentUser: any = null;
+    if (userId) {
+      try {
+        const { data } = await dbRead.from('users').select('*').eq('id', userId).maybeSingle();
+        if (data) currentUser = data;
+      } catch {}
+    }
+    if (!currentUser && userEmail) {
+      try {
+        const { data } = await dbRead.from('users').select('*').eq('email', userEmail.toLowerCase()).maybeSingle();
+        if (data) currentUser = data;
+      } catch {}
+    }
 
-      if (error) {
-        // If avatar_url column is not yet present, retry without avatar_url to maintain resilience
-        if (error.message && error.message.includes('avatar_url')) {
-          delete updates.avatar_url;
-          const retry = await dbWrite
-            .from('users')
-            .update(updates)
-            .eq('id', userId)
-            .select('*')
-            .single();
-          if (retry.error) throw retry.error;
-          updatedUser = { ...retry.data, avatar_url: resolvedAvatar };
-        } else {
-          throw error;
+    const targetEmail = currentUser?.email || userEmail || '';
+    const targetId = currentUser?.id || userId;
+
+    let updatedUser: any = {
+      ...(currentUser || {}),
+      ...updates
+    };
+
+    // 2. Persist to Neon PostgreSQL directly (which holds all schema columns)
+    try {
+      if (isNeonConfigured() && targetId) {
+        const fields = Object.keys(updates);
+        if (fields.length > 0) {
+          const setClause = fields.map((f, i) => `"${f}" = $${i + 1}`).join(', ');
+          const values = fields.map((f) => updates[f]);
+          await neonQueryWrite(`UPDATE users SET ${setClause} WHERE id = $${fields.length + 1}`, [...values, targetId]);
         }
-      } else {
-        updatedUser = data;
+      }
+    } catch (neonErr: any) {
+      console.warn('[UPDATE PROFILE] Neon direct sync note:', neonErr.message);
+    }
+
+    // 3. Persist to Supabase dbWrite (with resilient column handling)
+    try {
+      if (targetId) {
+        const { data, error } = await dbWrite
+          .from('users')
+          .update(updates)
+          .eq('id', targetId)
+          .select('*')
+          .maybeSingle();
+
+        if (error) {
+          // If schema cache lacks columns like avatar_url, batch, or username, update only core columns
+          const standardUpdates: Record<string, any> = {};
+          if (updates.name) standardUpdates.name = updates.name;
+          if (updates.roll_number) standardUpdates.roll_number = updates.roll_number;
+
+          if (Object.keys(standardUpdates).length > 0) {
+            const { data: fallbackData } = await dbWrite
+              .from('users')
+              .update(standardUpdates)
+              .eq('id', targetId)
+              .select('*')
+              .maybeSingle();
+            if (fallbackData) {
+              updatedUser = { ...fallbackData, ...updates };
+            }
+          }
+        } else if (data) {
+          updatedUser = { ...data, ...updates };
+        }
       }
     } catch (dbErr: any) {
-      throw dbErr;
+      console.warn('[UPDATE PROFILE] Supabase update note:', dbErr.message);
     }
 
-    // Keep memory & disk approval state synchronized
-    if (updatedUser?.email) {
-      updateUserMetadata(updatedUser.email, {
-        name: updatedUser.name,
-        username: updatedUser.username,
-        batch: updatedUser.batch,
-        avatar_url: updatedUser.avatar_url
+    // 4. Always synchronize persistent JSON & memory approval state
+    if (targetEmail) {
+      updateUserMetadata(targetEmail, {
+        name: updates.name || updatedUser.name,
+        username: updates.username || updatedUser.username,
+        batch: updates.batch || updatedUser.batch,
+        avatar_url: resolvedAvatar !== undefined ? resolvedAvatar : updatedUser.avatar_url,
+        roll_number: updates.roll_number || updatedUser.roll_number
       });
     }
+
+    const isMasterAdmin = isSuperAdminEmail(targetEmail) || isDesignatedAdmin(targetEmail);
+    const finalRole = isMasterAdmin ? 'ADMIN' : (updatedUser.role || 'MEMBER');
 
     return res.status(200).json({
       status: 'success',
       message: 'Profile updated successfully',
       data: {
-        id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        roll_number: updatedUser.roll_number,
-        role: updatedUser.role,
-        username: updatedUser.username,
-        batch: updatedUser.batch,
-        avatar_url: updatedUser.avatar_url,
-        created_at: updatedUser.created_at
+        id: updatedUser.id || targetId,
+        name: updates.name || updatedUser.name,
+        email: targetEmail,
+        roll_number: updates.roll_number || updatedUser.roll_number || null,
+        role: finalRole,
+        username: updates.username || updatedUser.username || null,
+        batch: updates.batch || updatedUser.batch || null,
+        avatar_url: resolvedAvatar !== undefined ? resolvedAvatar : (updatedUser.avatar_url || null),
+        created_at: updatedUser.created_at || new Date().toISOString()
       }
     });
   } catch (err: any) {
@@ -599,11 +698,12 @@ export const listUsersForAdmin = async (req: AuthRequest, res: Response) => {
 
         return {
           id: u.id,
-          name: u.name,
+          name: approval.name || u.name,
           email: u.email,
           username: approval.username || null,
           batch: approval.batch || null,
-          roll_number: u.roll_number || approval.roll_number || null,
+          roll_number: approval.roll_number || u.roll_number || null,
+          avatar_url: approval.avatar_url || (u as any).avatar_url || null,
           role: effectiveRole,
           status: effectiveStatus,
           isMasterAdmin: isMaster,

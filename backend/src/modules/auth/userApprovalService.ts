@@ -1,5 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
+dotenv.config();
 import { dbRead } from '../../config/database';
 
 export interface DesignatedAdminInfo {
@@ -12,21 +14,29 @@ export interface DesignatedAdminInfo {
 
 export const MASTER_ADMIN_EMAIL = (process.env.MASTER_ADMIN_EMAIL || process.env.DEFAULT_SENDER_EMAIL || process.env.SMTP_USER || 'cicrinventory@gmail.com').trim().toLowerCase();
 
-export const DEFAULT_DESIGNATED_ADMINS: DesignatedAdminInfo[] = [
-  {
-    email: MASTER_ADMIN_EMAIL,
-    name: process.env.DEFAULT_ADMIN_NAME || 'CICR Lab Admin',
-    username: 'admin'
-  }
-];
-
 export const SUPER_ADMIN_EMAILS: string[] = process.env.SUPER_ADMIN_EMAILS
   ? process.env.SUPER_ADMIN_EMAILS.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
   : [MASTER_ADMIN_EMAIL];
 
+export const DEFAULT_DESIGNATED_ADMINS: DesignatedAdminInfo[] = Array.from(
+  new Set([MASTER_ADMIN_EMAIL, ...SUPER_ADMIN_EMAILS])
+).map((email) => {
+  const isMaster = email.toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase();
+  const rawUser = email.split('@')[0];
+  return {
+    email,
+    name: isMaster ? (process.env.DEFAULT_ADMIN_NAME || 'CICR Lab Admin') : rawUser,
+    username: isMaster ? 'admin' : rawUser
+  };
+});
+
 export const isSuperAdminEmail = (email: string): boolean => {
-  const norm = email.trim().toLowerCase();
-  return SUPER_ADMIN_EMAILS.some((admin) => admin.toLowerCase() === norm);
+  const norm = (email || '').trim().toLowerCase();
+  if (!norm) return false;
+  const currentList = process.env.SUPER_ADMIN_EMAILS
+    ? process.env.SUPER_ADMIN_EMAILS.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
+    : SUPER_ADMIN_EMAILS;
+  return currentList.some((admin) => admin.toLowerCase() === norm);
 };
 
 export const isDesignatedAdmin = (email: string, _name?: string): boolean => {
@@ -87,18 +97,25 @@ try {
 
 const saveState = () => {
   try {
-    fs.writeFileSync(
-      STORAGE_FILE,
-      JSON.stringify(
-        {
-          approvalState,
-          purgedEmails: Array.from(purgedEmails)
-        },
-        null,
-        2
-      ),
-      'utf-8'
+    const payload = JSON.stringify(
+      {
+        approvalState,
+        purgedEmails: Array.from(purgedEmails)
+      },
+      null,
+      2
     );
+    fs.writeFileSync(STORAGE_FILE, payload, 'utf-8');
+
+    // Also persist to sibling paths if they exist to prevent root vs backend/ cwd desync
+    const alt1 = path.resolve(process.cwd(), 'user_approval_data.json');
+    const alt2 = path.resolve(process.cwd(), 'backend', 'user_approval_data.json');
+    if (alt1 !== STORAGE_FILE && fs.existsSync(path.dirname(alt1))) {
+      try { fs.writeFileSync(alt1, payload, 'utf-8'); } catch {}
+    }
+    if (alt2 !== STORAGE_FILE && fs.existsSync(path.dirname(alt2))) {
+      try { fs.writeFileSync(alt2, payload, 'utf-8'); } catch {}
+    }
   } catch (err) {
     console.warn('[USER APPROVAL] Failed to save user approval file:', err);
   }
@@ -134,13 +151,20 @@ export const unpurgeEmail = (email: string) => {
 
 export const getUserApproval = (email: string, initialRole: 'ADMIN' | 'MEMBER' = 'MEMBER'): UserApprovalRecord => {
   const normEmail = email.trim().toLowerCase();
+  const existing = approvalState[normEmail];
   
   if (isSuperAdminEmail(normEmail)) {
+    const match = DEFAULT_DESIGNATED_ADMINS.find((a) => a.email.toLowerCase() === normEmail);
     return {
       status: 'APPROVED',
       role: 'ADMIN',
-      approvedAt: new Date().toISOString(),
-      approvedBy: 'SYSTEM'
+      approvedAt: existing?.approvedAt || new Date().toISOString(),
+      approvedBy: 'SYSTEM',
+      username: existing?.username || match?.username || (normEmail === MASTER_ADMIN_EMAIL ? 'admin' : normEmail.split('@')[0]),
+      name: existing?.name || match?.name || (normEmail === MASTER_ADMIN_EMAIL ? (process.env.DEFAULT_ADMIN_NAME || 'CICR Lab Admin') : 'Administrator'),
+      avatar_url: existing?.avatar_url || null,
+      batch: existing?.batch || null,
+      roll_number: existing?.roll_number || null
     };
   }
 
@@ -170,7 +194,7 @@ export const setUserApproval = (
   email: string,
   status: 'PENDING' | 'APPROVED' | 'REJECTED',
   approvedBy?: string,
-  metadata?: { username?: string | null; batch?: string | null; name?: string | null; roll_number?: string | null }
+  metadata?: { username?: string | null; batch?: string | null; name?: string | null; roll_number?: string | null; avatar_url?: string | null }
 ): UserApprovalRecord => {
   const normEmail = email.trim().toLowerCase();
   // H-1 FIX: role derives from the exact allow-list email only; metadata.name is never consulted.
@@ -178,13 +202,31 @@ export const setUserApproval = (
 
   if (isSuperAdminEmail(normEmail)) {
     const match = DEFAULT_DESIGNATED_ADMINS.find((a) => a.email.toLowerCase() === normEmail);
-    return {
+    const existing = approvalState[normEmail] || {
       status: 'APPROVED',
       role: 'ADMIN',
       approvedAt: new Date().toISOString(),
+      approvedBy: 'SYSTEM'
+    };
+    if (metadata) {
+      if (metadata.username !== undefined) existing.username = metadata.username ? metadata.username.trim() : null;
+      if (metadata.batch !== undefined) existing.batch = metadata.batch ? metadata.batch.trim() : null;
+      if (metadata.name !== undefined) existing.name = metadata.name ? metadata.name.trim() : null;
+      if (metadata.roll_number !== undefined) existing.roll_number = metadata.roll_number ? metadata.roll_number.trim() : null;
+      if (metadata.avatar_url !== undefined) existing.avatar_url = metadata.avatar_url;
+    }
+    approvalState[normEmail] = existing;
+    saveState();
+    return {
+      status: 'APPROVED',
+      role: 'ADMIN',
+      approvedAt: existing.approvedAt || new Date().toISOString(),
       approvedBy: 'SYSTEM',
-      username: match?.username || (normEmail === MASTER_ADMIN_EMAIL ? 'vardaan' : 'cicradmin'),
-      name: match?.name || (normEmail === MASTER_ADMIN_EMAIL ? 'Vardaan' : 'CICR Admin')
+      username: existing.username || match?.username || (normEmail === MASTER_ADMIN_EMAIL ? 'admin' : normEmail.split('@')[0]),
+      name: existing.name || match?.name || (normEmail === MASTER_ADMIN_EMAIL ? (process.env.DEFAULT_ADMIN_NAME || 'CICR Lab Admin') : 'Administrator'),
+      avatar_url: existing.avatar_url || null,
+      batch: existing.batch || null,
+      roll_number: existing.roll_number || null
     };
   }
 
@@ -209,10 +251,10 @@ export const setUserApproval = (
   }
 
   if (metadata) {
-    if (metadata.username) current.username = metadata.username.trim();
-    if (metadata.batch) current.batch = metadata.batch.trim();
-    if (metadata.name) current.name = metadata.name.trim();
-    if (metadata.roll_number) current.roll_number = metadata.roll_number.trim();
+    if (metadata.username !== undefined) current.username = metadata.username ? metadata.username.trim() : null;
+    if (metadata.batch !== undefined) current.batch = metadata.batch ? metadata.batch.trim() : null;
+    if (metadata.name !== undefined) current.name = metadata.name ? metadata.name.trim() : null;
+    if (metadata.roll_number !== undefined) current.roll_number = metadata.roll_number ? metadata.roll_number.trim() : null;
     if ((metadata as any).avatar_url !== undefined) current.avatar_url = (metadata as any).avatar_url;
   }
 
@@ -223,16 +265,30 @@ export const setUserApproval = (
 
 export const updateUserMetadata = (
   email: string,
-  metadata: { name?: string; username?: string; batch?: string; avatar_url?: string | null }
+  metadata: { name?: string; username?: string; batch?: string; avatar_url?: string | null; roll_number?: string | null }
 ): void => {
   const normEmail = email.trim().toLowerCase();
-  if (approvalState[normEmail]) {
-    if (metadata.name !== undefined) approvalState[normEmail].name = metadata.name ? metadata.name.trim() : null;
-    if (metadata.username !== undefined) approvalState[normEmail].username = metadata.username ? metadata.username.trim() : null;
-    if (metadata.batch !== undefined) approvalState[normEmail].batch = metadata.batch ? metadata.batch.trim() : null;
-    if (metadata.avatar_url !== undefined) approvalState[normEmail].avatar_url = metadata.avatar_url;
-    saveState();
+  const isSuper = isSuperAdminEmail(normEmail);
+  const isDesignated = isDesignatedAdmin(normEmail);
+
+  if (!approvalState[normEmail]) {
+    const match = DEFAULT_DESIGNATED_ADMINS.find((a) => a.email.toLowerCase() === normEmail);
+    approvalState[normEmail] = {
+      status: 'APPROVED',
+      role: (isSuper || isDesignated) ? 'ADMIN' : 'MEMBER',
+      approvedAt: new Date().toISOString(),
+      approvedBy: 'SYSTEM',
+      username: match?.username || (normEmail === MASTER_ADMIN_EMAIL ? 'admin' : normEmail.split('@')[0]),
+      name: match?.name || (normEmail === MASTER_ADMIN_EMAIL ? (process.env.DEFAULT_ADMIN_NAME || 'CICR Lab Admin') : 'Administrator')
+    };
   }
+
+  if (metadata.name !== undefined) approvalState[normEmail].name = metadata.name ? metadata.name.trim() : null;
+  if (metadata.username !== undefined) approvalState[normEmail].username = metadata.username ? metadata.username.trim() : null;
+  if (metadata.batch !== undefined) approvalState[normEmail].batch = metadata.batch ? metadata.batch.trim() : null;
+  if (metadata.avatar_url !== undefined) approvalState[normEmail].avatar_url = metadata.avatar_url;
+  if (metadata.roll_number !== undefined) approvalState[normEmail].roll_number = metadata.roll_number ? metadata.roll_number.trim() : null;
+  saveState();
 };
 
 export const setUserRole = (
@@ -285,7 +341,8 @@ export const getAllUserApprovals = (): Record<string, UserApprovalRecord> => {
       username: existing?.username || adm.username,
       name: existing?.name || adm.name,
       roll_number: existing?.roll_number || adm.roll_number,
-      batch: existing?.batch || adm.batch
+      batch: existing?.batch || adm.batch,
+      avatar_url: existing?.avatar_url || null
     };
   });
   const filtered: Record<string, UserApprovalRecord> = {};
@@ -295,8 +352,8 @@ export const getAllUserApprovals = (): Record<string, UserApprovalRecord> => {
     }
   }
   return {
-    ...filtered,
-    ...base
+    ...base,
+    ...filtered
   };
 };
 
@@ -317,10 +374,13 @@ export const findUserApprovalByIdentifier = (identifier: string): { email: strin
       record: {
         status: 'APPROVED',
         role: 'ADMIN',
+        approvedAt: existing?.approvedAt || '2026-09-08T00:00:00.000Z',
+        approvedBy: existing?.approvedBy || 'SYSTEM',
         username: existing?.username || designatedMatch.username,
         name: existing?.name || designatedMatch.name,
         roll_number: existing?.roll_number || designatedMatch.roll_number,
-        batch: existing?.batch || designatedMatch.batch
+        batch: existing?.batch || designatedMatch.batch,
+        avatar_url: existing?.avatar_url || null
       }
     };
   }

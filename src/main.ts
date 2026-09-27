@@ -523,8 +523,13 @@ class Background3D {
         requestAnimationFrame(() => this.animate());
         if (typeof document !== 'undefined' && document.hidden) return;
 
-        // In Midnight Mono, canvas-3d is hidden. Skip rendering completely to eliminate GPU/CPU overhead!
-        if (this.currentTheme === 'mono') return;
+        // Mobile & touch device acceleration: bypass Three.js render loop to eliminate lag and save battery
+        if (window.innerWidth < 768 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) {
+            return;
+        }
+
+        // In Midnight Mono & Robosoccer Light themes, canvas-3d is hidden. Skip rendering completely to eliminate GPU/CPU overhead!
+        if (this.currentTheme === 'mono' || this.currentTheme === 'light') return;
         if (this.canvas && this.canvas.offsetParent === null && window.getComputedStyle(this.canvas).display === 'none') return;
 
         const isScrolling = !!(window as any).isUserScrolling;
@@ -932,7 +937,29 @@ class DatabaseManager {
         }
 
         const allUserReqs: any[] = Array.from(userReqMap.values());
-        const pendingCount = allUserReqs.filter(r => r.status === 'PENDING').length;
+        const userActiveNames = new Set<string>();
+        const userActiveIds = new Set<string>();
+        if (!isAdmin && Array.isArray(inventory)) {
+            inventory.forEach((item: any) => {
+                (item.borrowedBy || []).forEach((b: any) => {
+                    if (ModalManager.isUserLoanMatch(b) && !b.returned && b.status !== 'RETURNED') {
+                        if (item.name) userActiveNames.add(item.name.toLowerCase().trim());
+                        if (item.id) userActiveIds.add(String(item.id));
+                    }
+                });
+            });
+        }
+        const pendingCount = allUserReqs.filter(r => {
+            if (r.status !== 'PENDING') return false;
+            if (!isAdmin) {
+                const rName = (r.itemName || '').toLowerCase().trim();
+                const rId = String(r.itemId || '');
+                if (userActiveNames.has(rName) || (rId && userActiveIds.has(rId))) {
+                    return false;
+                }
+            }
+            return true;
+        }).length;
 
         const isLoggedIn = Boolean(localStorage.getItem('cicr_token') || localStorage.getItem('cicr_auth'));
 
@@ -1350,13 +1377,12 @@ class DashboardManager {
         const switchSection = (targetId: string) => {
             sections.forEach(node => {
                 const sec = node as HTMLElement;
-                sec.style.removeProperty('display');
                 if (sec.id === targetId) {
                     sec.classList.add('active');
-                    sec.style.display = (sec.id === 'admin-view' || sec.id === 'dashboard-view') ? 'flex' : 'block';
+                    sec.style.setProperty('display', (sec.id === 'admin-view' || sec.id === 'dashboard-view') ? 'flex' : 'block', 'important');
                 } else {
                     sec.classList.remove('active');
-                    sec.style.display = 'none';
+                    sec.style.setProperty('display', 'none', 'important');
                 }
             });
 
@@ -1484,15 +1510,16 @@ class DashboardManager {
         });
 
         // Interactive Collapsible Sidebar Sections (CORE WORKSPACE, MISCELLANEOUS)
-        const sidebarSectionHeaders = document.querySelectorAll('.sidebar-section-header');
+        const sidebarSectionHeaders = document.querySelectorAll('.sidebar-section > .sidebar-section-header');
         sidebarSectionHeaders.forEach(header => {
+            if (header.tagName.toLowerCase() === 'summary') return;
             header.setAttribute('role', 'button');
             header.setAttribute('tabindex', '0');
             header.setAttribute('aria-expanded', 'true');
 
             const toggleSection = () => {
-                const section = header.closest('.sidebar-section');
-                if (!section) return;
+                const section = header.parentElement;
+                if (!section || !section.classList.contains('sidebar-section')) return;
                 const isCollapsed = section.classList.toggle('is-collapsed');
                 header.setAttribute('aria-expanded', String(!isCollapsed));
             };
@@ -1510,6 +1537,15 @@ class DashboardManager {
                 }
             });
         });
+
+        // Sync Vault Dropdown aria-expanded state on toggle
+        const vaultDropdown = document.getElementById('sidebar-vault-dropdown') as HTMLDetailsElement | null;
+        const vaultHeader = document.getElementById('sidebar-header-vault');
+        if (vaultDropdown && vaultHeader) {
+            vaultDropdown.addEventListener('toggle', () => {
+                vaultHeader.setAttribute('aria-expanded', String(vaultDropdown.open));
+            });
+        }
 
         // Interactive Breadcrumb Redirecting Buttons
         const breadcrumbHome = document.getElementById('breadcrumb-home');
@@ -1644,8 +1680,9 @@ class DashboardManager {
         const sidebarProfileBox = document.getElementById('sidebar-profile-widget');
         if (sidebarProfileBox) {
             sidebarProfileBox.addEventListener('click', (e) => {
-                if ((e.target as HTMLElement).closest('#sidebar-reset-pass-btn')) return;
+                if ((e.target as HTMLElement).closest('#sidebar-reset-pass-btn') || (e.target as HTMLElement).closest('#sidebar-logout-btn')) return;
                 switchSection('profile-view');
+                closeMobileSidebar();
             });
         }
 
@@ -1735,6 +1772,7 @@ class DashboardManager {
                 const cat = (item as HTMLElement).dataset.category || 'all';
                 selectCategory(cat);
                 switchSection('inventory-view');
+                closeMobileSidebar();
             });
         });
 
@@ -5499,6 +5537,12 @@ class AuthManager {
                 const user = result.data;
                 if (user) {
                     this.loginSuccess(user.name, user.role, user);
+                    if (typeof ProfileViewManager !== 'undefined') {
+                        ProfileViewManager.render(false);
+                    }
+                    if (typeof AdminManager !== 'undefined' && typeof AdminManager.syncFromBackend === 'function') {
+                        AdminManager.syncFromBackend(false);
+                    }
                     const welcomedKey = 'cicr_welcomed_' + (user.name || 'user');
                     if (!sessionStorage.getItem(welcomedKey)) {
                         sessionStorage.setItem(welcomedKey, 'true');
@@ -5643,15 +5687,19 @@ class AuthManager {
 
         if (profileUserDisplay) profileUserDisplay.innerText = username;
         if (sidebarAvatarImg && profileAvatarInitial) {
+            const initialTextEl = document.getElementById('sidebar-avatar-initial-text');
             if (_userObj?.avatar_url) {
                 sidebarAvatarImg.src = _userObj.avatar_url;
                 sidebarAvatarImg.style.display = 'block';
-                profileAvatarInitial.style.display = 'none';
+                profileAvatarInitial.classList.add('has-avatar-img');
+                if (initialTextEl) {
+                    initialTextEl.style.display = 'none';
+                    initialTextEl.textContent = '';
+                }
             } else {
                 sidebarAvatarImg.src = '';
                 sidebarAvatarImg.style.display = 'none';
-                profileAvatarInitial.style.display = 'flex';
-                const initialTextEl = document.getElementById('sidebar-avatar-initial-text');
+                profileAvatarInitial.classList.remove('has-avatar-img');
                 if (initialTextEl) {
                     initialTextEl.textContent = (username.charAt(0) || 'U').toUpperCase();
                     initialTextEl.style.display = 'flex';
@@ -5660,7 +5708,7 @@ class AuthManager {
                 }
             }
         } else if (profileAvatarInitial) {
-            profileAvatarInitial.style.display = 'flex';
+            profileAvatarInitial.classList.remove('has-avatar-img');
             const initialTextEl = document.getElementById('sidebar-avatar-initial-text');
             if (initialTextEl) {
                 initialTextEl.textContent = (username.charAt(0) || 'U').toUpperCase();
@@ -5671,11 +5719,9 @@ class AuthManager {
         }
         if (profileRoleDisplay) {
             profileRoleDisplay.innerText = effectiveRole;
-            if (effectiveRole === 'ADMIN') {
-                profileRoleDisplay.style.color = '#ff007a';
-            } else {
-                profileRoleDisplay.style.color = 'var(--neon-cyan)';
-            }
+            profileRoleDisplay.classList.toggle('role-admin', effectiveRole === 'ADMIN');
+            profileRoleDisplay.classList.toggle('role-member', effectiveRole !== 'ADMIN');
+            profileRoleDisplay.style.color = '';
         }
 
         const welcomeScreen = document.getElementById('welcome-screen');
@@ -5766,30 +5812,28 @@ class AuthManager {
                 sideAdminLink.style.setProperty('display', 'flex', 'important');
             }
             if (dashAdminCard) {
-                dashAdminCard.style.removeProperty('display');
-                dashAdminCard.style.setProperty('display', 'flex', 'important');
+                dashAdminCard.style.setProperty('display', 'none', 'important');
             }
             if (btnInventoryAdd) {
                 btnInventoryAdd.style.removeProperty('display');
                 btnInventoryAdd.style.setProperty('display', 'inline-flex', 'important');
             }
-            if (adminViewSection) {
-                adminViewSection.style.removeProperty('display');
+            if (adminViewSection && !adminViewSection.classList.contains('active')) {
+                adminViewSection.style.setProperty('display', 'none', 'important');
             }
             if (sideHwLogsLink) {
                 sideHwLogsLink.style.removeProperty('display');
                 sideHwLogsLink.style.setProperty('display', 'flex', 'important');
             }
             if (dashHwLogsCard) {
-                dashHwLogsCard.style.removeProperty('display');
-                dashHwLogsCard.style.setProperty('display', 'flex', 'important');
+                dashHwLogsCard.style.setProperty('display', 'none', 'important');
             }
             if (navHwLogsLink) {
                 navHwLogsLink.style.removeProperty('display');
                 navHwLogsLink.style.setProperty('display', 'inline-flex', 'important');
             }
-            if (hwLogsSection) {
-                hwLogsSection.style.removeProperty('display');
+            if (hwLogsSection && !hwLogsSection.classList.contains('active')) {
+                hwLogsSection.style.setProperty('display', 'none', 'important');
             }
             AdminManager.init();
         } else {
@@ -6183,6 +6227,9 @@ class PasswordResetManager {
 
         if (defaultId && this.identifierInput) {
             this.identifierInput.value = defaultId;
+            this.identifierInput.readOnly = true;
+        } else if (this.identifierInput) {
+            this.identifierInput.readOnly = false;
         }
 
         this.resetModal.style.display = 'flex';
@@ -6346,6 +6393,7 @@ interface AdminUserRecord {
     batch?: string | null;
     branch?: string | null;
     roll_number: string | null;
+    avatar_url?: string | null;
     role: 'ADMIN' | 'MEMBER';
     status: 'APPROVED' | 'PENDING' | 'REJECTED';
     isMasterAdmin?: boolean;
@@ -6383,6 +6431,26 @@ class AdminManager {
     public static hardwareRequests: AdminHardwareRequest[] = [];
     public static userHardwareRequests: AdminHardwareRequest[] = [];
     public static auditLogs: any[] = [];
+
+    public static getUserAvatar(emailOrId?: string | null): string | null {
+        if (!emailOrId) return null;
+        const clean = emailOrId.toLowerCase().trim();
+        const match = this.users.find(u =>
+            (u.email && u.email.toLowerCase() === clean) ||
+            (u.id && u.id === emailOrId) ||
+            (u.roll_number && u.roll_number.toLowerCase() === clean)
+        );
+        if (match?.avatar_url) return match.avatar_url;
+
+        try {
+            const current = JSON.parse(localStorage.getItem('cicr_user') || '{}');
+            if (current && ((current.email && current.email.toLowerCase() === clean) || current.id === emailOrId)) {
+                if (current.avatar_url) return current.avatar_url;
+            }
+        } catch {}
+
+        return null;
+    }
     private static activeAuditCategory = 'all';
     private static auditSearchTerm = '';
     private static activeUserRoleFilter = 'all';
@@ -6668,6 +6736,10 @@ class AdminManager {
         (window as any).inspectUserProfile = (info: any) => AdminManager.inspectUserProfile(info);
     }
 
+    public static async syncFromBackend(force = false) {
+        await this.loadUsers(force);
+    }
+
     static async loadUsers(force = false) {
         const token = localStorage.getItem('cicr_token');
         const isAuth = document.body.classList.contains('authenticated') || document.documentElement.classList.contains('is-authenticated');
@@ -6911,10 +6983,11 @@ class AdminManager {
         const totalPending = pendingUsers + pendingHardware;
         if (sidebarBadge) {
             if (totalPending > 0) {
-                if (sidebarBadge.style.display !== 'inline-block') sidebarBadge.style.display = 'inline-block';
-                if (sidebarBadge.innerText !== totalPending.toString()) sidebarBadge.innerText = totalPending.toString();
+                sidebarBadge.style.display = 'inline-flex';
+                sidebarBadge.innerText = totalPending.toString();
             } else {
-                if (sidebarBadge.style.display !== 'none') sidebarBadge.style.display = 'none';
+                sidebarBadge.style.display = 'none';
+                sidebarBadge.innerText = '0';
             }
         }
     }
@@ -6964,7 +7037,12 @@ class AdminManager {
                 </div>
 
                 <div class="hw-card-requester">
-                    <div class="hw-avatar admin-user-clickable" data-user-name="${this.escapeHtml(r.borrowerName)}" data-user-email="${this.escapeHtml(r.borrowerEmail)}" data-user-roll="${this.escapeHtml(r.rollNumber || '')}" title="Inspect Member Profile">${r.borrowerName ? escapeHtml(r.borrowerName.charAt(0).toUpperCase()) : 'U'}</div>
+                    ${(() => {
+                        const borrowerAvatar = AdminManager.getUserAvatar(r.borrowerEmail);
+                        return `<div class="hw-avatar admin-user-clickable ${borrowerAvatar ? 'has-custom-avatar' : ''}" data-user-name="${this.escapeHtml(r.borrowerName)}" data-user-email="${this.escapeHtml(r.borrowerEmail)}" data-user-roll="${this.escapeHtml(r.rollNumber || '')}" title="Inspect Member Profile">
+                            ${borrowerAvatar ? `<img src="${escapeHtml(borrowerAvatar)}" class="hw-avatar-img" alt="${escapeHtml(r.borrowerName || 'User')}" />` : (r.borrowerName ? escapeHtml(r.borrowerName.charAt(0).toUpperCase()) : 'U')}
+                        </div>`;
+                    })()}
                     <div class="hw-meta-col">
                         <span class="hw-requester-name admin-user-clickable" data-user-name="${this.escapeHtml(r.borrowerName)}" data-user-email="${this.escapeHtml(r.borrowerEmail)}" data-user-roll="${this.escapeHtml(r.rollNumber || '')}" title="Inspect Member Profile">${escapeHtml(r.borrowerName)}</span>
                         <span class="hw-requester-email">${escapeHtml(r.borrowerEmail)}</span>
@@ -7344,7 +7422,12 @@ class AdminManager {
             return `
             <div class="pending-request-card glass" data-user-id="${escapeHtml(u.id)}">
                 <div class="pending-card-top">
-                    <div class="pending-card-avatar admin-user-clickable" data-user-id="${escapeHtml(u.id)}" data-user-name="${this.escapeHtml(u.name)}" data-user-email="${this.escapeHtml(u.email)}" data-user-roll="${this.escapeHtml(u.roll_number || '')}" data-user-batch="${this.escapeHtml(u.batch || '')}" title="Inspect Profile">${u.name ? escapeHtml(u.name.charAt(0).toUpperCase()) : 'U'}</div>
+                    ${(() => {
+                        const pendingAvatar = u.avatar_url || AdminManager.getUserAvatar(u.email);
+                        return `<div class="pending-card-avatar admin-user-clickable ${pendingAvatar ? 'has-custom-avatar' : ''}" data-user-id="${escapeHtml(u.id)}" data-user-name="${this.escapeHtml(u.name)}" data-user-email="${this.escapeHtml(u.email)}" data-user-roll="${this.escapeHtml(u.roll_number || '')}" data-user-batch="${this.escapeHtml(u.batch || '')}" title="Inspect Profile">
+                            ${pendingAvatar ? `<img src="${escapeHtml(pendingAvatar)}" class="pending-card-avatar-img" alt="${escapeHtml(u.name || 'User')}" />` : (u.name ? escapeHtml(u.name.charAt(0).toUpperCase()) : 'U')}
+                        </div>`;
+                    })()}
                     <div class="pending-card-meta">
                         <span class="pending-card-name admin-user-clickable" data-user-id="${escapeHtml(u.id)}" data-user-name="${this.escapeHtml(u.name)}" data-user-email="${this.escapeHtml(u.email)}" data-user-roll="${this.escapeHtml(u.roll_number || '')}" data-user-batch="${this.escapeHtml(u.batch || '')}" title="Inspect Profile">${this.escapeHtml(u.name)}</span>
                         <span class="pending-card-email">${this.escapeHtml(u.email)}</span>
@@ -7421,18 +7504,27 @@ class AdminManager {
                 </div>
             `;
 
-            // Cyber avatar styles
+            // Elegant, Non-Neon Theme Avatars
             const avatarGradient = isMaster
-                ? 'linear-gradient(135deg, #00f0ff, #facc15)'
+                ? 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)'
                 : u.role === 'ADMIN'
-                    ? 'linear-gradient(135deg, #ff007a, #9333ea)'
-                    : 'linear-gradient(135deg, #00f0ff, #3b82f6)';
+                    ? 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)'
+                    : 'linear-gradient(135deg, #475569 0%, #334155 100%)';
 
             const avatarShadow = isMaster
-                ? '0 0 10px rgba(0, 240, 255, 0.4), 0 0 4px rgba(250, 204, 21, 0.3)'
+                ? '0 2px 6px rgba(79, 70, 229, 0.28)'
                 : u.role === 'ADMIN'
-                    ? '0 0 10px rgba(255, 0, 122, 0.35)'
-                    : '0 0 8px rgba(0, 240, 255, 0.2)';
+                    ? '0 2px 6px rgba(124, 58, 237, 0.28)'
+                    : '0 2px 5px rgba(0, 0, 0, 0.12)';
+
+            const userAvatarImg = u.avatar_url || AdminManager.getUserAvatar(u.email);
+            const avatarStyle = userAvatarImg
+                ? 'background: rgba(124, 58, 237, 0.08); border: 1.5px solid rgba(124, 58, 237, 0.25); box-shadow: 0 1px 3px rgba(0,0,0,0.1);'
+                : `background: ${avatarGradient}; box-shadow: ${avatarShadow}; border: 1px solid rgba(255, 255, 255, 0.15);`;
+
+            const avatarContent = userAvatarImg
+                ? `<img src="${escapeHtml(userAvatarImg)}" class="user-cell-avatar-img" alt="${escapeHtml(u.name || 'User')}" />`
+                : `${u.name ? escapeHtml(u.name.charAt(0).toUpperCase()) : 'U'}`;
 
             const roleBadge = isMaster
                 ? `<span class="badge-role master"><i data-lucide="crown"></i> MASTER ADMIN</span>`
@@ -7460,8 +7552,8 @@ class AdminManager {
                 <tr data-user-id="${u.id}">
                     <td>
                         <div class="user-cell-name">
-                            <div class="user-cell-avatar admin-user-clickable" data-user-id="${u.id}" data-user-name="${this.escapeHtml(u.name || 'Anonymous')}" data-user-email="${this.escapeHtml(u.email)}" data-user-roll="${this.escapeHtml(u.roll_number || '')}" data-user-batch="${this.escapeHtml(u.batch || '')}" title="Inspect Profile" style="background: ${avatarGradient}; box-shadow: ${avatarShadow};">
-                                ${u.name ? u.name.charAt(0).toUpperCase() : 'U'}
+                            <div class="user-cell-avatar admin-user-clickable ${userAvatarImg ? 'has-custom-avatar' : ''}" data-user-id="${u.id}" data-user-name="${this.escapeHtml(u.name || 'Anonymous')}" data-user-email="${this.escapeHtml(u.email)}" data-user-roll="${this.escapeHtml(u.roll_number || '')}" data-user-batch="${this.escapeHtml(u.batch || '')}" title="Inspect Profile" style="${avatarStyle}">
+                                ${avatarContent}
                             </div>
                             <div class="user-cell-meta-wrap">
                                 <span class="user-cell-display-name admin-user-clickable" data-user-id="${u.id}" data-user-name="${this.escapeHtml(u.name || 'Anonymous')}" data-user-email="${this.escapeHtml(u.email)}" data-user-roll="${this.escapeHtml(u.roll_number || '')}" data-user-batch="${this.escapeHtml(u.batch || '')}" title="Inspect Profile">${this.escapeHtml(u.name || 'Anonymous')}</span>
@@ -7492,7 +7584,6 @@ class AdminManager {
                         <td colspan="6">
                             <div class="user-group-header">
                                 <div class="user-group-title">
-                                    <i data-lucide="crown"></i>
                                     <span>ADMINISTRATORS & LEADERSHIP</span>
                                 </div>
                                 <span class="user-group-badge badge-cyan">0 ADMINS</span>
@@ -7512,7 +7603,6 @@ class AdminManager {
                     <td colspan="6">
                         <div class="user-group-header">
                             <div class="user-group-title">
-                                <i data-lucide="crown"></i>
                                 <span>ADMINISTRATORS & LEADERSHIP</span>
                             </div>
                             <span class="user-group-badge badge-cyan">${adminUsers.length} ADMINS</span>
@@ -7805,7 +7895,14 @@ class AdminManager {
 
         // Avatar
         const avatarEl = document.getElementById('inspector-user-avatar');
-        if (avatarEl) avatarEl.textContent = displayName.charAt(0).toUpperCase();
+        if (avatarEl) {
+            const avatarUrl = matchedUser?.avatar_url || AdminManager.getUserAvatar(displayEmail);
+            if (avatarUrl) {
+                avatarEl.innerHTML = `<img src="${escapeHtml(avatarUrl)}" class="inspector-avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />`;
+            } else {
+                avatarEl.textContent = displayName.charAt(0).toUpperCase();
+            }
+        }
 
         // Role badge
         const roleBadgeEl = document.getElementById('inspector-user-role-badge');
@@ -8043,30 +8140,34 @@ class AdminManager {
         });
 
         // Compute and update category badge counts for the active time window
-        const catCounts = {
-            all: rangeFilteredLogs.length,
-            auth: 0,
-            inventory: 0,
-            hardware: 0,
-            loans: 0,
-            system: 0
-        };
+        if (this.auditTelemetry?.categoryCounts) {
+            this.updateAuditCategoryPills(this.auditTelemetry.categoryCounts);
+        } else {
+            const catCounts = {
+                all: rangeFilteredLogs.length,
+                auth: 0,
+                inventory: 0,
+                hardware: 0,
+                loans: 0,
+                system: 0
+            };
 
-        rangeFilteredLogs.forEach(l => {
-            const act = l.action || '';
-            if (['Sign In', 'Sign Up', 'User Approved', 'User Rejected', 'Role Changed', 'User Deleted', 'Password Reset'].includes(act)) {
-                catCounts.auth++;
-            } else if (['Item Added', 'Item Edited', 'Item Deleted', 'Stock Alert', 'Low Stock'].includes(act)) {
-                catCounts.inventory++;
-            } else if (['Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Hardware Cancelled'].includes(act)) {
-                catCounts.hardware++;
-            } else if (['Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested'].includes(act)) {
-                catCounts.loans++;
-            } else {
-                catCounts.system++;
-            }
-        });
-        this.updateAuditCategoryPills(catCounts);
+            rangeFilteredLogs.forEach(l => {
+                const act = l.action || '';
+                if (['Sign In', 'Sign Up', 'User Approved', 'User Rejected', 'Role Changed', 'User Deleted', 'Password Reset'].includes(act)) {
+                    catCounts.auth++;
+                } else if (['Item Added', 'Item Edited', 'Item Deleted', 'Stock Alert', 'Low Stock'].includes(act)) {
+                    catCounts.inventory++;
+                } else if (['Hardware Requested', 'Bulk Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Rejected Request', 'Hardware Cancelled'].includes(act)) {
+                    catCounts.hardware++;
+                } else if (['Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested', 'Ledger Record Deleted'].includes(act)) {
+                    catCounts.loans++;
+                } else {
+                    catCounts.system++;
+                }
+            });
+            this.updateAuditCategoryPills(catCounts);
+        }
 
         // 2. Category filtering
         let filtered = rangeFilteredLogs;
@@ -8079,14 +8180,14 @@ class AdminManager {
                 } else if (cat === 'inventory') {
                     return ['Item Added', 'Item Edited', 'Item Deleted', 'Stock Alert', 'Low Stock'].includes(act);
                 } else if (cat === 'hardware') {
-                    return ['Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Hardware Cancelled'].includes(act);
+                    return ['Hardware Requested', 'Bulk Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Rejected Request', 'Hardware Cancelled'].includes(act);
                 } else if (cat === 'loans') {
-                    return ['Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested'].includes(act);
+                    return ['Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested', 'Ledger Record Deleted'].includes(act);
                 } else if (cat === 'system') {
                     return !['Sign In', 'Sign Up', 'User Approved', 'User Rejected', 'Role Changed', 'User Deleted', 'Password Reset',
                              'Item Added', 'Item Edited', 'Item Deleted', 'Stock Alert', 'Low Stock',
-                             'Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Hardware Cancelled',
-                             'Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested'].includes(act);
+                             'Hardware Requested', 'Bulk Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Rejected Request', 'Hardware Cancelled',
+                             'Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested', 'Ledger Record Deleted'].includes(act);
                 }
                 return true;
             });
@@ -8937,6 +9038,7 @@ class ProfileViewManager {
         const branch = getStudentBranch(roll, user.branch || user.batch);
 
         // Hero initials & avatar image sync
+        const heroAvatarFrame = document.getElementById('profile-hero-avatar-frame');
         const heroAvatarImg = document.getElementById('profile-hero-avatar-img') as HTMLImageElement;
         const heroInitial = document.getElementById('profile-hero-initial');
         if (heroAvatarImg && heroInitial) {
@@ -8944,10 +9046,14 @@ class ProfileViewManager {
                 heroAvatarImg.src = user.avatar_url;
                 heroAvatarImg.style.display = 'block';
                 heroInitial.style.display = 'none';
+                heroInitial.textContent = '';
+                if (heroAvatarFrame) heroAvatarFrame.classList.add('has-avatar-img');
             } else {
+                heroAvatarImg.src = '';
                 heroAvatarImg.style.display = 'none';
                 heroInitial.style.display = 'block';
                 heroInitial.textContent = (name.charAt(0) || 'U').toUpperCase();
+                if (heroAvatarFrame) heroAvatarFrame.classList.remove('has-avatar-img');
             }
         } else if (heroInitial) {
             heroInitial.textContent = (name.charAt(0) || 'U').toUpperCase();
@@ -8957,14 +9063,19 @@ class ProfileViewManager {
         const sidebarAvatarImg = document.getElementById('sidebar-avatar-img') as HTMLImageElement;
         const sidebarInitial = document.getElementById('profile-avatar-initial');
         if (sidebarAvatarImg && sidebarInitial) {
+            const initialTextEl = document.getElementById('sidebar-avatar-initial-text');
             if (user.avatar_url) {
                 sidebarAvatarImg.src = user.avatar_url;
                 sidebarAvatarImg.style.display = 'block';
-                sidebarInitial.style.display = 'none';
+                sidebarInitial.classList.add('has-avatar-img');
+                if (initialTextEl) {
+                    initialTextEl.style.display = 'none';
+                    initialTextEl.textContent = '';
+                }
             } else {
+                sidebarAvatarImg.src = '';
                 sidebarAvatarImg.style.display = 'none';
-                sidebarInitial.style.display = 'flex';
-                const initialTextEl = document.getElementById('sidebar-avatar-initial-text');
+                sidebarInitial.classList.remove('has-avatar-img');
                 if (initialTextEl) {
                     initialTextEl.textContent = (name.charAt(0) || 'U').toUpperCase();
                     initialTextEl.style.display = 'flex';
@@ -8973,7 +9084,7 @@ class ProfileViewManager {
                 }
             }
         } else if (sidebarInitial) {
-            sidebarInitial.style.display = 'flex';
+            sidebarInitial.classList.remove('has-avatar-img');
             const initialTextEl = document.getElementById('sidebar-avatar-initial-text');
             if (initialTextEl) {
                 initialTextEl.textContent = (name.charAt(0) || 'U').toUpperCase();
@@ -8981,6 +9092,17 @@ class ProfileViewManager {
             } else {
                 sidebarInitial.textContent = (name.charAt(0) || 'U').toUpperCase();
             }
+        }
+
+        const profileUserDisplay = document.getElementById('profile-username-display');
+        if (profileUserDisplay) profileUserDisplay.textContent = name || username;
+
+        const profileRoleDisplay = document.querySelector('.sidebar-profile-box .profile-role') as HTMLElement;
+        if (profileRoleDisplay) {
+            profileRoleDisplay.innerText = role;
+            profileRoleDisplay.classList.toggle('role-admin', role === 'ADMIN');
+            profileRoleDisplay.classList.toggle('role-member', role !== 'ADMIN');
+            profileRoleDisplay.style.color = '';
         }
 
         const heroName = document.getElementById('profile-hero-display-name');
@@ -9437,15 +9559,20 @@ class ProfileEditManager {
         const nameInput = document.getElementById('edit-profile-name') as HTMLInputElement;
         const char = (nameInput?.value || 'U').charAt(0).toUpperCase();
 
+        const editFrame = document.getElementById('edit-avatar-preview-frame');
         if (previewImg && previewInitial) {
             if (avatarUrl) {
                 previewImg.src = avatarUrl;
                 previewImg.style.display = 'block';
                 previewInitial.style.display = 'none';
+                previewInitial.textContent = '';
+                if (editFrame) editFrame.classList.add('has-avatar-img');
             } else {
+                previewImg.src = '';
                 previewImg.style.display = 'none';
                 previewInitial.textContent = char;
                 previewInitial.style.display = 'flex';
+                if (editFrame) editFrame.classList.remove('has-avatar-img');
             }
         }
     }
@@ -9524,9 +9651,9 @@ class ProfileEditManager {
             emailInput.disabled = true;
         }
         if (rollInput) {
-            rollInput.value = roll || 'Enrolled Student';
-            rollInput.readOnly = true;
-            rollInput.disabled = true;
+            rollInput.value = roll || '';
+            rollInput.readOnly = false;
+            rollInput.disabled = false;
         }
 
         this.pendingAvatarUrl = user.avatar_url;
@@ -9561,12 +9688,14 @@ class ProfileEditManager {
         const nameInput = document.getElementById('edit-profile-name') as HTMLInputElement;
         const usernameInput = document.getElementById('edit-profile-username') as HTMLInputElement;
         const branchInput = document.getElementById('edit-profile-branch') as HTMLInputElement;
+        const rollInput = document.getElementById('edit-profile-roll') as HTMLInputElement;
         const saveBtn = document.getElementById('save-edit-profile-btn') as HTMLButtonElement;
         const errorEl = document.getElementById('edit-profile-error');
 
         const newName = nameInput ? nameInput.value.trim() : '';
         const newUsername = usernameInput ? usernameInput.value.trim() : '';
         const newBranch = branchInput ? branchInput.value.trim() : '';
+        const newRoll = rollInput ? rollInput.value.trim() : '';
 
         if (!newName) {
             if (errorEl) {
@@ -9584,7 +9713,7 @@ class ProfileEditManager {
         const origBtnHtml = saveBtn ? saveBtn.innerHTML : 'Save & Sync';
         if (saveBtn) {
             saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> <span>Syncing...</span>';
+            saveBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> <span>Saving to Vault...</span>';
             if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
@@ -9598,7 +9727,8 @@ class ProfileEditManager {
             name: newName,
             username: newUsername || undefined,
             branch: newBranch || undefined,
-            batch: newBranch || undefined
+            batch: newBranch || undefined,
+            roll_number: newRoll || undefined
         };
 
         if (this.pendingAvatarUrl !== undefined) {
@@ -9623,7 +9753,7 @@ class ProfileEditManager {
 
                 const data = await res.json().catch(() => ({}));
 
-                if (res.ok) {
+                if (res.ok && data.status === 'success') {
                     cloudSync = true;
                     updatedUser = data.data;
                 } else {
@@ -9640,6 +9770,7 @@ class ProfileEditManager {
                     username: newUsername || user.username,
                     branch: newBranch || user.branch,
                     batch: newBranch || user.batch,
+                    roll_number: newRoll || user.roll_number,
                     avatar_url: this.pendingAvatarUrl !== undefined ? (this.pendingAvatarUrl || null) : user.avatar_url
                 };
             }
@@ -9649,21 +9780,29 @@ class ProfileEditManager {
             if (updatedUser.username) {
                 localStorage.setItem('cicr_auth', updatedUser.username);
             }
+            if (updatedUser.role) {
+                localStorage.setItem('cicr_role', updatedUser.role);
+            }
 
             // Sync with other active UI components
             const navUserName = document.getElementById('nav-user-name');
             if (navUserName) navUserName.textContent = updatedUser.name || updatedUser.username;
 
             const profileUserDisplay = document.getElementById('profile-username-display');
-            if (profileUserDisplay) profileUserDisplay.textContent = updatedUser.username || updatedUser.name;
+            if (profileUserDisplay) profileUserDisplay.textContent = updatedUser.name || updatedUser.username;
 
             // Update avatar in sidebar & profile view
-            ProfileViewManager.render();
+            ProfileViewManager.render(false);
+
+            // Synchronize with AdminManager so dashboard queues and user tables update immediately
+            if (typeof AdminManager !== 'undefined' && typeof AdminManager.syncFromBackend === 'function') {
+                AdminManager.syncFromBackend(true);
+            }
 
             if (cloudSync) {
-                ToastManager.show('Profile Synchronized', 'Your identity and profile picture are securely synced with cloud vault.', 'success');
+                ToastManager.show('Profile Synchronized', 'Your identity and profile picture are securely saved in the database.', 'success');
             } else {
-                ToastManager.show('Profile Saved', 'Profile details updated. Local cache saved.', 'success');
+                ToastManager.show('Profile Saved', 'Profile details updated and cached locally.', 'success');
             }
             this.close();
         } catch (err: any) {
@@ -10184,8 +10323,14 @@ class HardwareLedgerManager {
                     <!-- Borrower -->
                     <td>
                         <div class="hw-td-borrower">
-                            <a href="#" class="admin-user-clickable hw-borrower-name" data-user-name="${AdminManager.escapeHtml(r.borrower_name)}" data-user-email="${AdminManager.escapeHtml(r.borrower_email)}" data-user-roll="${AdminManager.escapeHtml(r.borrower_roll)}" title="Inspect Member Profile">${AdminManager.escapeHtml(r.borrower_name)}</a>
-                            <span class="hw-roll-badge">${AdminManager.escapeHtml(r.borrower_roll || 'JIIT')}</span>
+                            ${(() => {
+                                const borrowerAvatar = AdminManager.getUserAvatar(r.borrower_email);
+                                return borrowerAvatar ? `<span class="hw-borrower-avatar-mini"><img src="${escapeHtml(borrowerAvatar)}" class="hw-avatar-img" alt="" /></span>` : '';
+                            })()}
+                            <div class="hw-borrower-meta-info" style="display:flex; flex-direction:column; min-width:0;">
+                                <a href="#" class="admin-user-clickable hw-borrower-name" data-user-name="${AdminManager.escapeHtml(r.borrower_name)}" data-user-email="${AdminManager.escapeHtml(r.borrower_email)}" data-user-roll="${AdminManager.escapeHtml(r.borrower_roll)}" title="Inspect Member Profile">${AdminManager.escapeHtml(r.borrower_name)}</a>
+                                <span class="hw-roll-badge">${AdminManager.escapeHtml(r.borrower_roll || 'JIIT')}</span>
+                            </div>
                         </div>
                     </td>
 
@@ -10477,6 +10622,28 @@ class NotificationCenterManager {
             linkAction?: () => void;
         }> = [];
 
+        // Pre-scan active loans & accepted items to delete / suppress stale pending request alerts
+        const now = Date.now();
+        const userActiveIssuedNames = new Set<string>();
+        const userActiveIssuedIds = new Set<string>();
+        const userAcceptedBorrowIds = new Set<string>();
+        const userAcceptedReqIds = new Set<string>();
+
+        if (Array.isArray(inventory)) {
+            inventory.forEach((item: any) => {
+                (item.borrowedBy || []).forEach((b: any) => {
+                    const isMine = ModalManager.isUserLoanMatch(b);
+                    const isReturned = b.returned || b.status === 'RETURNED';
+                    if (isMine && !isReturned) {
+                        if (item.name) userActiveIssuedNames.add(item.name.toLowerCase().trim());
+                        if (item.id) userActiveIssuedIds.add(String(item.id));
+                        if (b.id) userAcceptedBorrowIds.add(String(b.id));
+                        if (b.requestId) userAcceptedReqIds.add(String(b.requestId));
+                    }
+                });
+            });
+        }
+
         // 1. Pending / Active Requests
         let localRequests: any[] = [];
         try {
@@ -10491,6 +10658,45 @@ class NotificationCenterManager {
             ? AdminManager.userHardwareRequests
             : [];
 
+        (memberQueue || []).forEach((r: any) => {
+            if (r && (r.status === 'APPROVED' || r.status === 'BORROWED')) {
+                if (r.id) userAcceptedReqIds.add(String(r.id));
+                if (r.itemId) userActiveIssuedIds.add(String(r.itemId));
+                if (r.itemName) userActiveIssuedNames.add(r.itemName.toLowerCase().trim());
+            }
+        });
+        (requests || []).forEach((r: any) => {
+            if (r && (r.status === 'APPROVED' || r.status === 'BORROWED') && (isAdmin || ModalManager.isUserRequestMatch(r))) {
+                if (r.id) userAcceptedReqIds.add(String(r.id));
+                if (r.itemId) userActiveIssuedIds.add(String(r.itemId));
+                if (r.itemName) userActiveIssuedNames.add(r.itemName.toLowerCase().trim());
+            }
+        });
+
+        // Automatically purge accepted/issued requests from local requests cache
+        let localRequestsChanged = false;
+        const cleanedLocalRequests = localRequests.filter((r: any) => {
+            if (!r) return false;
+            const rId = String(r.id || '');
+            const rItemId = String(r.itemId || '');
+            const rItemName = (r.itemName || '').toLowerCase().trim();
+            const isAccepted = userAcceptedReqIds.has(rId) ||
+                (rItemId && userActiveIssuedIds.has(rItemId)) ||
+                (rItemName && userActiveIssuedNames.has(rItemName)) ||
+                r.status === 'APPROVED';
+            if (isAccepted) {
+                localRequestsChanged = true;
+                return false;
+            }
+            return true;
+        });
+        if (localRequestsChanged) {
+            try {
+                localStorage.setItem('cicr_requests', JSON.stringify(cleanedLocalRequests));
+                localRequests = cleanedLocalRequests;
+            } catch {}
+        }
+
         const combinedReqs = isAdmin
             ? [...adminQueue, ...(requests || []), ...localRequests]
             : [...memberQueue, ...(requests || []).filter(r => ModalManager.isUserRequestMatch(r)), ...localRequests.filter(r => ModalManager.isUserRequestMatch(r))];
@@ -10501,7 +10707,7 @@ class NotificationCenterManager {
                 if (!req || !req.id || seenReqIds.has(String(req.id))) return;
                 seenReqIds.add(String(req.id));
 
-                const reqTime = req.requestedAt ? Math.min(Date.now(), new Date(req.requestedAt).getTime()) : Date.now();
+                const reqTime = this.parseSafeTime(req.requestedAt || req.timestamp, now);
                 const isReturn = req.type === 'RETURN' || Boolean(req.borrowId);
                 const reqName = req.borrowerName || req.name || 'Member';
                 const reqItem = req.itemName || 'Hardware Component';
@@ -10528,7 +10734,7 @@ class NotificationCenterManager {
                             }
                         }
                     });
-                } else if (req.status === 'APPROVED' && (Date.now() - reqTime < 48 * 60 * 60 * 1000)) {
+                } else if (req.status === 'APPROVED' && (now - reqTime < 48 * 60 * 60 * 1000)) {
                     const notifId = `req-admin-app-${req.id}`;
                     notifs.push({
                         id: notifId,
@@ -10545,7 +10751,7 @@ class NotificationCenterManager {
                             }
                         }
                     });
-                } else if (req.status === 'REJECTED' && (Date.now() - reqTime < 48 * 60 * 60 * 1000)) {
+                } else if (req.status === 'REJECTED' && (now - reqTime < 48 * 60 * 60 * 1000)) {
                     const notifId = `req-admin-rej-${req.id}`;
                     notifs.push({
                         id: notifId,
@@ -10571,18 +10777,29 @@ class NotificationCenterManager {
 
                 if (!ModalManager.isUserRequestMatch(req)) return;
 
-                const reqTime = req.requestedAt ? Math.min(Date.now(), new Date(req.requestedAt).getTime()) : Date.now();
+                const reqTime = this.parseSafeTime(req.requestedAt || req.timestamp, now);
                 const status = (req.status || 'PENDING').toUpperCase();
                 const isReturn = req.type === 'RETURN' || Boolean(req.borrowId);
                 const reqItem = req.itemName || 'Hardware Component';
                 const reqQty = Number(req.quantity || req.qty || req.returnQuantity) || 1;
                 const notifId = `my-req-${req.id}`;
 
+                const isAccepted = userAcceptedReqIds.has(String(req.id)) ||
+                    (req.itemId && userActiveIssuedIds.has(String(req.itemId))) ||
+                    (req.itemName && userActiveIssuedNames.has(req.itemName.toLowerCase().trim())) ||
+                    status === 'APPROVED';
+
+                // Automatically delete / suppress pending alert if the request has already been accepted/issued
+                if (isAccepted && status === 'PENDING') {
+                    return;
+                }
+
                 let title = 'Request In Review';
                 let message = `Request for ${reqQty}x ${reqItem} is awaiting admin approval.`;
                 let type: 'request' | 'issued' | 'returned' = 'request';
 
                 if (status === 'APPROVED') {
+                    // If component already present in active loans, inventory section will show "Component Issued"
                     type = isReturn ? 'returned' : 'issued';
                     title = isReturn ? 'Return Accepted' : 'Request Approved';
                     message = isReturn
@@ -10621,14 +10838,13 @@ class NotificationCenterManager {
 
         // 2. Active Loans & Returns from inventory
         if (Array.isArray(inventory)) {
-            const now = Date.now();
             inventory.forEach((item: any) => {
                 (item.borrowedBy || []).forEach((b: any, idx: number) => {
                     const isMine = ModalManager.isUserLoanMatch(b);
 
                     if (isAdmin || isMine) {
                         const isReturned = b.returned || b.status === 'RETURNED';
-                        const loanTime = b.date ? Math.min(Date.now(), new Date(b.date).getTime()) : Date.now();
+                        const loanTime = this.parseSafeTime(b.timestamp || b.createdAt || b.date, now);
                         const loanId = b.id || `${item.id}-${idx}`;
 
                         if (isReturned) {
@@ -10887,8 +11103,30 @@ class NotificationCenterManager {
         }
     }
 
+    private static parseSafeTime(val: any, fallbackTs: number = Date.now()): number {
+        if (!val) return fallbackTs;
+        if (typeof val === 'number' && !isNaN(val)) return Math.min(Date.now(), val);
+        if (typeof val === 'string') {
+            const trimmed = val.trim();
+            // If it's a date-only string like YYYY-MM-DD
+            if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+                const now = new Date();
+                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                if (trimmed === todayStr) {
+                    return fallbackTs;
+                }
+                const parsedDate = new Date(`${trimmed}T12:00:00`);
+                if (!isNaN(parsedDate.getTime())) return Math.min(Date.now(), parsedDate.getTime());
+            }
+            const parsed = new Date(trimmed);
+            if (!isNaN(parsed.getTime())) return Math.min(Date.now(), parsed.getTime());
+        }
+        return fallbackTs;
+    }
+
     private static formatRelativeTime(ts: number): string {
         const diffMs = Date.now() - ts;
+        if (diffMs <= 0) return 'Just now';
         const diffMins = Math.floor(diffMs / (1000 * 60));
         if (diffMins < 1) return 'Just now';
         if (diffMins < 60) return `${diffMins}m ago`;
@@ -10918,14 +11156,16 @@ class ThemeManager {
         this.headerThemeSelectEl = document.getElementById('header-theme-select') as HTMLSelectElement;
 
         const storedTheme = localStorage.getItem('cicr_vault_theme') || localStorage.getItem('cicr_theme');
-        // Safe migration for legacy and invalid themes -> default to Midnight Mono ('mono')
-        let defaultTheme = 'mono';
-        if (storedTheme === 'light') {
+        // Primary default theme: Robosoccer ('light')
+        let defaultTheme = 'light';
+        if (storedTheme === 'mono') {
+            defaultTheme = 'mono';
+        } else if (storedTheme === 'decent') {
+            defaultTheme = 'decent';
+        } else if (storedTheme === 'light') {
             defaultTheme = 'light';
-        } else if (storedTheme === 'mono') {
-            defaultTheme = 'mono';
         } else {
-            defaultTheme = 'mono';
+            defaultTheme = 'light';
         }
         this.applyTheme(defaultTheme);
 
@@ -10955,6 +11195,7 @@ class ThemeManager {
 
         const themeBtnLight = document.getElementById('theme-btn-light');
         const themeBtnMono = document.getElementById('theme-btn-mono');
+        const themeBtnDecent = document.getElementById('theme-btn-decent');
 
         if (themeBtnLight) {
             themeBtnLight.addEventListener('click', () => {
@@ -10966,33 +11207,45 @@ class ThemeManager {
                 this.applyTheme('mono');
             });
         }
+        if (themeBtnDecent) {
+            themeBtnDecent.addEventListener('click', () => {
+                this.applyTheme('decent');
+            });
+        }
 
         const authThemeToggle = document.getElementById('auth-theme-toggle');
         if (authThemeToggle) {
             authThemeToggle.addEventListener('click', (e) => {
                 e.preventDefault();
-                const cur = document.documentElement.getAttribute('data-theme') || 'mono';
-                const next = cur === 'light' ? 'mono' : 'light';
-                this.applyTheme(next);
+                const cur = document.documentElement.getAttribute('data-theme') || 'light';
+                const themeCycle = ['light', 'decent', 'mono'];
+                const nextIdx = (themeCycle.indexOf(cur) + 1) % themeCycle.length;
+                this.applyTheme(themeCycle[nextIdx]);
             });
         }
     }
 
     public static applyTheme(theme: string) {
-        if (theme !== 'light' && theme !== 'mono') {
-            theme = 'mono';
+        if (theme !== 'light' && theme !== 'mono' && theme !== 'decent') {
+            theme = 'light';
         }
 
         // Direct, non-blocking class & attribute switches
         document.documentElement.setAttribute('data-theme', theme);
-        document.body.classList.remove('theme-light', 'theme-mono');
+        document.body.classList.remove('theme-light', 'theme-mono', 'theme-decent');
         document.body.classList.add(`theme-${theme}`);
         localStorage.setItem('cicr_vault_theme', theme);
         localStorage.setItem('cicr_theme', theme);
 
         const authThemeLabel = document.querySelector('.auth-theme-label');
         if (authThemeLabel) {
-            authThemeLabel.textContent = theme === 'light' ? 'Robo Lab' : 'Midnight Mono';
+            if (theme === 'light') {
+                authThemeLabel.textContent = 'Robosoccer';
+            } else if (theme === 'decent') {
+                authThemeLabel.textContent = 'Cyber Decent';
+            } else {
+                authThemeLabel.textContent = 'Midnight Mono';
+            }
         }
 
         if (this.themeSelectEl && this.themeSelectEl.value !== theme) {
@@ -11008,8 +11261,10 @@ class ThemeManager {
         // Fast toggle for sidebar theme buttons
         const themeBtnLight = document.getElementById('theme-btn-light');
         const themeBtnMono = document.getElementById('theme-btn-mono');
+        const themeBtnDecent = document.getElementById('theme-btn-decent');
         if (themeBtnLight) themeBtnLight.classList.toggle('active', theme === 'light');
         if (themeBtnMono) themeBtnMono.classList.toggle('active', theme === 'mono');
+        if (themeBtnDecent) themeBtnDecent.classList.toggle('active', theme === 'decent');
 
         if (window.bg3D) {
             window.bg3D.updateThemeColors(theme);

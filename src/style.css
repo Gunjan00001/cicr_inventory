@@ -13,9 +13,9 @@
     --search-bg: #141413;
     --search-border: #262522;
     --badge-bg: #1E1D1B;
-    --active-bg: #E1DCCF;
-    --active-border: #E1DCCF;
-    --active-color: #11110F;
+    --active-bg: #242320;
+    --active-border: #454139;
+    --active-color: #F2F0E9;
 
     /* Theme Accents */
     --neon-cyan: #72C7D5;
@@ -8861,7 +8861,7 @@ body.theme-light .drawer-bulk-return-banner .banner-title {
 /* Core Container Restructuring to Sidebar Grid - Sleeker Column Width */
 .app-container {
     display: grid;
-    grid-template-columns: 230px minmax(0, 1fr) !important;
+    grid-template-columns: 268px minmax(0, 1fr) !important;
     gap: 20px !important;
     padding: 16px 20px !important;
     max-width: 1600px !important;
@@ -8877,7 +8877,9 @@ body.theme-light .drawer-bulk-return-banner .banner-title {
         position: -webkit-sticky !important;
         position: sticky !important;
         top: 16px !important;
-        width: 240px !important;
+        width: 268px !important;
+        min-width: 268px !important;
+        max-width: 268px !important;
         height: calc(100vh - 32px) !important;
         max-height: calc(100vh - 32px) !important;
         z-index: 100 !important;
@@ -9159,11 +9161,12 @@ body.theme-light .sidebar-scroll-content::-webkit-scrollbar-thumb {
 
 /* Sidebar Nav Groups */
 .sidebar-section {
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    gap: 6px;
+    margin-top: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    gap: 6px !important;
 }
 
 .sidebar-section-header {
@@ -9267,15 +9270,17 @@ html[data-theme="light"] .sidebar-section-header:hover {
 }
 
 .sidebar-nav-link.active {
-    color: #11110F !important;
-    background: #E1DCCF !important;
-    border: 1px solid #E1DCCF !important;
+    color: #F2F0E9 !important;
+    background: #242320 !important;
+    border: 1px solid #454139 !important;
+    border-left: 3px solid #C8BFA8 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
     font-weight: 600;
 }
 
 .sidebar-nav-link.active i,
 .sidebar-nav-link.active svg {
-    color: #11110F !important;
+    color: #C8BFA8 !important;
 }
 
 /* Theme Selector Widget in Sidebar */
@@ -9344,33 +9349,42 @@ html[data-theme="light"] .sidebar-section-header:hover {
 .sidebar-profile-box {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
+    gap: 10px;
+    padding: 9px 12px;
     margin-top: auto;
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.15));
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .profile-avatar {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+    background: linear-gradient(135deg, var(--neon-cyan, #00f0ff), var(--neon-purple, #8b5cf6));
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
     line-height: 1 !important;
     font-weight: 700;
-    font-size: 11px;
+    font-size: 13px;
     color: #ffffff;
-    font-family: 'Orbitron', sans-serif;
-    box-shadow: 0 0 6px rgba(0, 240, 255, 0.1);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
     flex-shrink: 0;
     overflow: hidden;
     position: relative;
     user-select: none;
+}
+
+.sidebar-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
 }
 
 #sidebar-avatar-initial-text {
@@ -9384,37 +9398,122 @@ html[data-theme="light"] .sidebar-section-header:hover {
     margin: 0;
     padding: 0;
     color: #ffffff;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 700;
-    font-size: 11px;
-    transform: translateY(-0.5px);
+    font-size: 13px;
 }
 
 .profile-info {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
     flex-grow: 1;
     overflow: hidden;
     min-width: 0;
 }
 
 .sidebar-profile-box .profile-name {
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 700;
     color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
     margin: 0;
 }
 
 .profile-role {
-    font-size: 7.5px;
-    font-weight: 800;
-    color: var(--neon-cyan);
+    display: inline-flex;
+    align-items: center;
+    padding: 1.5px 7px;
+    border-radius: 9999px;
+    font-size: 8.5px;
+    font-weight: 700;
     letter-spacing: 0.5px;
+    text-transform: uppercase;
+    width: fit-content;
+    line-height: 1.25;
+    background: rgba(0, 240, 255, 0.1);
+    color: var(--neon-cyan, #00f0ff);
+    border: 1px solid rgba(0, 240, 255, 0.25);
+}
+
+.profile-role.role-admin {
+    background: rgba(245, 158, 11, 0.14) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+.profile-role.role-member {
+    background: rgba(0, 240, 255, 0.1) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(0, 240, 255, 0.25) !important;
+}
+
+/* Light Theme Sidebar Profile Box */
+body.theme-light .sidebar-profile-box,
+[data-theme="light"] .sidebar-profile-box {
+    background: #f1f5f9 !important;
+    border: 1px solid rgba(203, 213, 225, 0.9) !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+body.theme-light .sidebar-profile-box .profile-name,
+[data-theme="light"] .sidebar-profile-box .profile-name {
+    color: #0f172a !important;
+}
+
+body.theme-light .profile-role.role-admin,
+[data-theme="light"] .profile-role.role-admin {
+    background: rgba(99, 102, 241, 0.12) !important;
+    color: #4f46e5 !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+}
+
+body.theme-light .profile-role.role-member,
+[data-theme="light"] .profile-role.role-member {
+    background: rgba(14, 165, 233, 0.1) !important;
+    color: #0284c7 !important;
+    border: 1px solid rgba(14, 165, 233, 0.3) !important;
+}
+
+body.theme-light .profile-avatar,
+[data-theme="light"] .profile-avatar {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Mono Theme Sidebar Profile Box */
+body.theme-mono .sidebar-profile-box,
+[data-theme="mono"] .sidebar-profile-box {
+    background: #18181b !important;
+    border: 1px solid #27272a !important;
+}
+
+body.theme-mono .sidebar-profile-box .profile-name,
+[data-theme="mono"] .sidebar-profile-box .profile-name {
+    color: #f4f4f5 !important;
+}
+
+body.theme-mono .profile-role.role-admin,
+[data-theme="mono"] .profile-role.role-admin {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #f4f4f5 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+body.theme-mono .profile-role.role-member,
+[data-theme="mono"] .profile-role.role-member {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #a1a1aa !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+body.theme-mono .profile-avatar,
+[data-theme="mono"] .profile-avatar {
+    background: linear-gradient(135deg, #52525b, #27272a) !important;
+    box-shadow: none !important;
 }
 
 /* Right Viewport Workspace Layout */
@@ -13323,16 +13422,17 @@ body.theme-light .team-carousel-arrow:hover {
     width: 28px;
     height: 28px;
     border-radius: 7px;
-    background: linear-gradient(135deg, #ff007a, #9333ea);
+    background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 800;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 700;
     color: #ffffff;
     font-size: 11.5px;
-    box-shadow: 0 0 8px rgba(255, 0, 122, 0.3);
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25);
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .pending-card-meta {
@@ -13684,19 +13784,18 @@ body.theme-light .team-carousel-arrow:hover {
 .admin-users-table thead th {
     position: sticky;
     top: 0;
-    background: rgba(13, 17, 30, 0.96);
+    background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     z-index: 3;
-    padding: 10px 14px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 8.5px;
-    font-weight: 800;
+    padding: 11px 14px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
     letter-spacing: 0.8px;
-    color: #7dd3fc;
+    color: #94a3b8;
     text-transform: uppercase;
-    border-bottom: 1px solid rgba(0, 240, 255, 0.22);
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.35);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .admin-users-table tbody td {
@@ -13747,12 +13846,12 @@ body.theme-light .team-carousel-arrow:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Orbitron', monospace;
-    font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: 1.2px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: #f1f5f9;
+    color: #f8fafc;
 }
 
 .admin-group-row .user-group-title i {
@@ -13768,26 +13867,26 @@ body.theme-light .team-carousel-arrow:hover {
 }
 
 .user-group-badge {
-    font-family: 'Orbitron', monospace;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0.8px;
-    padding: 2px 9px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2.5px 10px;
     border-radius: 9999px;
 }
 
 .user-group-badge.badge-cyan {
-    background: rgba(0, 240, 255, 0.15);
-    color: #00f0ff;
-    border: 1px solid rgba(0, 240, 255, 0.4);
-    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.32);
+    box-shadow: none;
 }
 
 .user-group-badge.badge-purple {
-    background: rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.12);
     color: #c084fc;
-    border: 1px solid rgba(168, 85, 247, 0.4);
-    box-shadow: 0 0 8px rgba(168, 85, 247, 0.2);
+    border: 1px solid rgba(168, 85, 247, 0.32);
+    box-shadow: none;
 }
 
 .admin-users-controls {
@@ -13828,18 +13927,74 @@ body.theme-light .user-group-title {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 12px;
-    font-weight: 900;
+    font-weight: 700;
     color: #ffffff;
     flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
-    transition: transform 0.2s ease;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-cell-avatar.has-custom-avatar {
+    background: transparent !important;
+    text-shadow: none !important;
+}
+
+.user-cell-avatar img,
+.user-cell-avatar-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    border-radius: inherit !important;
 }
 
 .admin-users-table tbody tr:hover .user-cell-avatar {
     transform: scale(1.08);
+}
+
+.pending-card-avatar.has-custom-avatar,
+.hw-avatar.has-custom-avatar {
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    border: 1.5px solid rgba(121, 86, 232, 0.35) !important;
+}
+
+.pending-card-avatar img,
+.pending-card-avatar-img,
+.hw-avatar img,
+.hw-avatar-img,
+.inspector-avatar-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    border-radius: inherit !important;
+}
+
+.hw-borrower-avatar-mini {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(121, 86, 232, 0.25);
+    background: rgba(121, 86, 232, 0.08);
+    margin-right: 2px;
+}
+
+.hw-td-borrower {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .user-cell-meta-wrap {
@@ -13850,43 +14005,47 @@ body.theme-light .user-group-title {
 }
 
 .user-cell-display-name {
-    font-size: 12px;
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 0.3px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f8fafc;
+    letter-spacing: 0.15px;
     white-space: nowrap;
 }
 
 .user-cell-subtext {
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: 9px;
-    color: #64748b;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: #94a3b8;
+    letter-spacing: 0.1px;
     white-space: nowrap;
 }
 
 .user-email-text {
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: 10.5px;
-    color: #94a3b8;
-    letter-spacing: 0.2px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 12px;
+    font-weight: 450;
+    color: #e2e8f0;
+    letter-spacing: 0.1px;
     transition: color 0.2s ease;
 }
 
 .admin-users-table tbody tr:hover .user-email-text {
-    color: var(--neon-cyan);
+    color: #38bdf8;
 }
 
 /* Status Badges with Pulse Indicators */
 .badge-status {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 3px 9px;
+    gap: 6px;
+    padding: 3.5px 10px;
     border-radius: 9999px;
-    font-size: 8px;
-    font-weight: 800;
-    font-family: 'Orbitron', sans-serif;
-    letter-spacing: 0.6px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 0.4px;
     white-space: nowrap;
 }
 
@@ -13895,19 +14054,20 @@ body.theme-light .user-group-title {
     height: 6px;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
 }
 
 .badge-status.approved {
-    background: rgba(57, 255, 20, 0.1);
-    border: 1px solid rgba(57, 255, 20, 0.38);
-    color: #39ff14;
-    box-shadow: 0 0 10px rgba(57, 255, 20, 0.18);
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.32);
+    color: #34d399;
+    box-shadow: none;
 }
 
 .status-pulse-dot.dot-approved {
-    background: #39ff14;
-    box-shadow: 0 0 6px #39ff14;
-    animation: status-pulse-green 2s infinite ease-in-out;
+    background: #10b981;
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
+    animation: status-pulse-green 2.5s infinite ease-in-out;
 }
 
 @keyframes status-pulse-green {
@@ -13919,23 +14079,23 @@ body.theme-light .user-group-title {
     }
 
     50% {
-        transform: scale(1.3);
-        opacity: 0.7;
-        box-shadow: 0 0 10px #39ff14;
+        transform: scale(1.25);
+        opacity: 0.75;
+        box-shadow: 0 0 8px #10b981;
     }
 }
 
 .badge-status.pending {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    color: #f59e0b;
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.18);
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.32);
+    color: #fbbf24;
+    box-shadow: none;
 }
 
 .status-pulse-dot.dot-pending {
     background: #f59e0b;
-    box-shadow: 0 0 6px #f59e0b;
-    animation: status-pulse-amber 2s infinite ease-in-out;
+    box-shadow: 0 0 5px rgba(245, 158, 11, 0.4);
+    animation: status-pulse-amber 2.5s infinite ease-in-out;
 }
 
 @keyframes status-pulse-amber {
@@ -13947,63 +14107,63 @@ body.theme-light .user-group-title {
     }
 
     50% {
-        transform: scale(1.3);
-        opacity: 0.7;
-        box-shadow: 0 0 10px #f59e0b;
+        transform: scale(1.25);
+        opacity: 0.75;
+        box-shadow: 0 0 8px #f59e0b;
     }
 }
 
 .badge-status.rejected {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #ef4444;
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.18);
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.32);
+    color: #f87171;
+    box-shadow: none;
 }
 
 .status-pulse-dot.dot-rejected {
     background: #ef4444;
-    box-shadow: 0 0 6px #ef4444;
+    box-shadow: none;
 }
 
 /* Role Badges */
 .badge-role {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
+    gap: 5px;
+    padding: 3.5px 9px;
     border-radius: 6px;
-    font-size: 8px;
-    font-weight: 800;
-    font-family: 'Orbitron', sans-serif;
-    letter-spacing: 0.5px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 0.3px;
     white-space: nowrap;
 }
 
 .badge-role i,
 .badge-role svg {
-    width: 10px !important;
-    height: 10px !important;
+    width: 11px !important;
+    height: 11px !important;
 }
 
 .badge-role.master {
-    background: linear-gradient(135deg, rgba(0, 240, 255, 0.22), rgba(255, 0, 122, 0.22));
-    border: 1px solid rgba(0, 240, 255, 0.55);
-    color: #00f0ff;
-    box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+    box-shadow: none;
+    text-shadow: none;
 }
 
 .badge-role.admin {
-    background: rgba(255, 0, 122, 0.14);
-    border: 1px solid rgba(255, 0, 122, 0.45);
-    color: #ff007a;
-    box-shadow: 0 0 10px rgba(255, 0, 122, 0.2);
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    color: #fb7185;
+    box-shadow: none;
 }
 
 .badge-role.member {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #94a3b8;
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    color: #cbd5e1;
 }
 
 /* Registration Date & Time (2-line aesthetic) */
@@ -14014,30 +14174,67 @@ body.theme-light .user-group-title {
 }
 
 .user-reg-date {
-    font-size: 11px;
-    font-weight: 600;
-    color: #e2e8f0;
-    letter-spacing: 0.2px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #f1f5f9;
+    letter-spacing: 0.15px;
     white-space: nowrap;
 }
 
 .user-reg-time {
-    font-family: 'Orbitron', Consolas, monospace;
-    font-size: 9px;
-    font-weight: 600;
-    color: var(--neon-cyan, #00f0ff);
-    letter-spacing: 0.5px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 450;
+    color: #94a3b8;
+    letter-spacing: 0.2px;
     white-space: nowrap;
-    text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+    text-shadow: none;
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
 }
 
 .user-reg-time i,
 .user-reg-time svg {
-    width: 9px !important;
-    height: 9px !important;
+    width: 11px !important;
+    height: 11px !important;
+    color: #94a3b8;
+}
+
+/* Sidebar Admin Portal Badge */
+#admin-pending-badge {
+    margin-left: auto;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 2.5px 7px;
+    border-radius: 9999px;
+    letter-spacing: 0.2px;
+    display: none;
+    transition: all 0.2s ease;
+}
+
+body.theme-light #admin-pending-badge,
+[data-theme="light"] #admin-pending-badge {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.28);
+}
+
+body.theme-decent #admin-pending-badge,
+[data-theme="decent"] #admin-pending-badge {
+    background: rgba(244, 63, 94, 0.16);
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, 0.32);
+}
+
+body.theme-mono #admin-pending-badge,
+[data-theme="mono"] #admin-pending-badge {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* Actions Cell & Buttons */
@@ -19600,6 +19797,78 @@ body.theme-light .empty-loans-title,
     color: #0f172a;
 }
 
+/* Light Theme Overrides for Profile Requests & History Cards */
+body.theme-light .profile-request-card,
+[data-theme="light"] .profile-request-card,
+html[data-theme="light"] .profile-request-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04) !important;
+}
+
+body.theme-light .profile-request-card:hover,
+[data-theme="light"] .profile-request-card:hover,
+html[data-theme="light"] .profile-request-card:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.theme-light .profile-request-title,
+[data-theme="light"] .profile-request-title,
+html[data-theme="light"] .profile-request-title {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+body.theme-light .profile-request-items-list,
+[data-theme="light"] .profile-request-items-list,
+html[data-theme="light"] .profile-request-items-list {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+body.theme-light .profile-request-item-row span,
+[data-theme="light"] .profile-request-item-row span,
+html[data-theme="light"] .profile-request-item-row span {
+    color: #1e293b !important;
+    font-weight: 600 !important;
+}
+
+body.theme-light .profile-request-item-row span:last-child,
+[data-theme="light"] .profile-request-item-row span:last-child,
+html[data-theme="light"] .profile-request-item-row span:last-child {
+    color: #7c3aed !important;
+    font-weight: 700 !important;
+}
+
+body.theme-light .profile-request-card div[style*="color: #94a3b8"],
+[data-theme="light"] .profile-request-card div[style*="color: #94a3b8"],
+html[data-theme="light"] .profile-request-card div[style*="color: #94a3b8"] {
+    color: #64748b !important;
+}
+
+body.theme-light .profile-loan-card,
+[data-theme="light"] .profile-loan-card,
+html[data-theme="light"] .profile-loan-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04) !important;
+}
+
+body.theme-light .loan-item-title,
+[data-theme="light"] .loan-item-title,
+html[data-theme="light"] .loan-item-title {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+body.theme-light .loan-meta-pills span,
+[data-theme="light"] .loan-meta-pills span,
+html[data-theme="light"] .loan-meta-pills span {
+    color: #64748b !important;
+}
+
 /* =========================================================
    RESPONSIVE BREAKPOINTS FOR PROFILE VIEW
    ========================================================= */
@@ -19813,6 +20082,83 @@ body.theme-light .empty-loans-title,
     object-fit: cover;
     border-radius: 50%;
 }
+
+/* ==========================================================================
+   GLOBAL AVATAR IMAGE STABILIZATION & OVERFLOW CONTROL
+   Ensures images never squish, shift, or bleed text initial letters
+   ========================================================================== */
+.profile-avatar,
+.profile-hero-avatar-frame,
+.edit-avatar-frame,
+.profile-inspector-avatar,
+.user-cell-avatar,
+.hw-avatar,
+.pending-card-avatar {
+    position: relative !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+}
+
+/* When custom avatar image is active, hide any text initial completely */
+.profile-avatar.has-avatar-img #sidebar-avatar-initial-text,
+.profile-avatar.has-avatar-img > span,
+.profile-hero-avatar-frame.has-avatar-img .profile-hero-avatar-initial,
+.profile-hero-avatar-frame.has-avatar-img > span,
+.edit-avatar-frame.has-avatar-img .edit-avatar-initial,
+.edit-avatar-frame.has-avatar-img > span,
+.profile-inspector-avatar.has-avatar-img > span,
+.user-cell-avatar.has-custom-avatar > span,
+.hw-avatar.has-custom-avatar > span,
+.pending-card-avatar.has-custom-avatar > span {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Stable Avatar Images: Pinned absolute with 100% cover and inherit border-radius */
+.profile-avatar.has-avatar-img #sidebar-avatar-img,
+.profile-avatar.has-avatar-img img,
+.profile-hero-avatar-frame.has-avatar-img #profile-hero-avatar-img,
+.profile-hero-avatar-frame.has-avatar-img img,
+.edit-avatar-frame.has-avatar-img #edit-avatar-img-preview,
+.edit-avatar-frame.has-avatar-img img,
+.profile-inspector-avatar.has-avatar-img .inspector-avatar-img,
+.profile-inspector-avatar.has-avatar-img img,
+.user-cell-avatar.has-custom-avatar .user-cell-avatar-img,
+.user-cell-avatar.has-custom-avatar img,
+.hw-avatar.has-custom-avatar .hw-avatar-img,
+.hw-avatar.has-custom-avatar img,
+.pending-card-avatar.has-custom-avatar .pending-card-avatar-img,
+.pending-card-avatar.has-custom-avatar img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: inherit !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 2 !important;
+}
+
+.profile-avatar.has-avatar-img,
+.profile-hero-avatar-frame.has-avatar-img,
+.edit-avatar-frame.has-avatar-img,
+.profile-inspector-avatar.has-avatar-img,
+.user-cell-avatar.has-custom-avatar,
+.hw-avatar.has-custom-avatar,
+.pending-card-avatar.has-custom-avatar {
+    background: transparent !important;
+    box-shadow: none !important;
+}
 .edit-avatar-controls {
     display: flex;
     flex-direction: column;
@@ -19976,15 +20322,176 @@ body.theme-light .empty-loans-title,
     }
 }
 
-/* Light Theme overrides for edit profile modal */
+/* Security card inside Edit Profile Modal */
+.edit-profile-security-card {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    background: rgba(0, 240, 255, 0.04);
+    border: 1px solid rgba(0, 240, 255, 0.16);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.security-card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.security-icon-box {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: rgba(0, 240, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon-cyan, #00f0ff);
+    flex-shrink: 0;
+}
+
+.security-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.security-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Light Theme overrides for edit profile modal & security card */
+body.theme-light #edit-profile-modal .modal-content,
+[data-theme="light"] #edit-profile-modal .modal-content {
+    background: #ffffff !important;
+    border: 1px solid rgba(203, 213, 225, 0.9) !important;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12) !important;
+}
+
+body.theme-light .edit-profile-security-card,
+[data-theme="light"] .edit-profile-security-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+body.theme-light .security-icon-box,
+[data-theme="light"] .security-icon-box {
+    background: rgba(99, 102, 241, 0.12) !important;
+    color: #4f46e5 !important;
+}
+
+body.theme-light .security-title,
+[data-theme="light"] .security-title {
+    color: #0f172a !important;
+}
+
+body.theme-light .security-desc,
+[data-theme="light"] .security-desc {
+    color: #64748b !important;
+}
+
+body.theme-light #edit-profile-modal .btn-avatar-upload,
+[data-theme="light"] #edit-profile-modal .btn-avatar-upload {
+    background: rgba(99, 102, 241, 0.1) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    color: #4f46e5 !important;
+}
+
+body.theme-light #edit-profile-modal .btn-avatar-remove,
+[data-theme="light"] #edit-profile-modal .btn-avatar-remove {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+body.theme-light #edit-profile-modal .edit-avatar-initial,
+[data-theme="light"] #edit-profile-modal .edit-avatar-initial {
+    color: #4f46e5 !important;
+}
+
+body.theme-light #edit-profile-modal .edit-avatar-ring,
+[data-theme="light"] #edit-profile-modal .edit-avatar-ring {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.2) !important;
+}
+
 body.theme-light #edit-profile-modal .modal-footer,
 [data-theme="light"] #edit-profile-modal .modal-footer {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.98) 100%);
-    border-top-color: rgba(0, 0, 0, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%) !important;
+    border-top: 1px solid rgba(226, 232, 240, 0.9) !important;
 }
+
 body.theme-light #edit-profile-modal .modal-content::-webkit-scrollbar-thumb,
 [data-theme="light"] #edit-profile-modal .modal-content::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(100, 116, 139, 0.25) !important;
+}
+
+/* Mono Theme overrides for edit profile modal & security card */
+body.theme-mono #edit-profile-modal .modal-content,
+[data-theme="mono"] #edit-profile-modal .modal-content {
+    background: #18181b !important;
+    border: 1px solid #27272a !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6) !important;
+}
+
+body.theme-mono .edit-profile-security-card,
+[data-theme="mono"] .edit-profile-security-card {
+    background: #1c1c20 !important;
+    border: 1px solid #27272a !important;
+}
+
+body.theme-mono .security-icon-box,
+[data-theme="mono"] .security-icon-box {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f4f4f5 !important;
+}
+
+body.theme-mono .security-title,
+[data-theme="mono"] .security-title {
+    color: #f4f4f5 !important;
+}
+
+body.theme-mono .security-desc,
+[data-theme="mono"] .security-desc {
+    color: #a1a1aa !important;
+}
+
+body.theme-mono #edit-profile-modal .btn-avatar-upload,
+[data-theme="mono"] #edit-profile-modal .btn-avatar-upload {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #f4f4f5 !important;
+}
+
+body.theme-mono #edit-profile-modal .btn-avatar-remove,
+[data-theme="mono"] #edit-profile-modal .btn-avatar-remove {
+    background: #27272a !important;
+    border-color: #3f3f46 !important;
+    color: #d4d4d8 !important;
+}
+
+body.theme-mono #edit-profile-modal .edit-avatar-initial,
+[data-theme="mono"] #edit-profile-modal .edit-avatar-initial {
+    color: #f4f4f5 !important;
+}
+
+body.theme-mono #edit-profile-modal .edit-avatar-ring,
+[data-theme="mono"] #edit-profile-modal .edit-avatar-ring {
+    background: linear-gradient(135deg, #52525b, #27272a) !important;
+    box-shadow: none !important;
+}
+
+body.theme-mono #edit-profile-modal .modal-footer,
+[data-theme="mono"] #edit-profile-modal .modal-footer {
+    background: #18181b !important;
+    border-top: 1px solid #27272a !important;
 }
 
 /* ==========================================================================
@@ -21351,7 +21858,7 @@ body.theme-light .edit-profile-security-card,
     html[data-theme="light"] .app-container,
     body.theme-light .app-container {
         display: grid !important;
-        grid-template-columns: 240px minmax(0, 1fr) !important;
+        grid-template-columns: 268px minmax(0, 1fr) !important;
         gap: 24px !important;
         width: 100% !important;
         max-width: 1540px !important;
@@ -21371,7 +21878,9 @@ body.theme-light .edit-profile-security-card,
         position: -webkit-sticky !important;
         position: sticky !important;
         top: 16px !important;
-        width: 240px !important;
+        width: 268px !important;
+        min-width: 268px !important;
+        max-width: 268px !important;
         height: calc(100vh - 32px) !important;
         max-height: calc(100vh - 32px) !important;
         margin: 0 !important;
@@ -21380,8 +21889,8 @@ body.theme-light .edit-profile-security-card,
         transform: none !important;
         -webkit-transform: none !important;
         will-change: auto !important;
-        scrollbar-width: thin !important;
-        scrollbar-color: rgba(130, 90, 210, 0.2) transparent !important;
+        scrollbar-width: none !important;
+        overflow: hidden !important;
         display: flex !important;
         flex-direction: column !important;
         align-self: start !important;
@@ -21413,27 +21922,63 @@ body.theme-light .edit-profile-security-card,
     }
 }
 
-/* Custom Sleek Scrollbar for Sidebar (Eliminates ugly Windows cyan scrollbar) */
-.sidebar-scroll-content,
-.app-sidebar {
-    scrollbar-width: thin !important;
-    scrollbar-color: rgba(130, 90, 210, 0.22) transparent !important;
+/* Universal scrollbar arrow button suppression across Windows / Chromium */
+*::-webkit-scrollbar-button,
+.sidebar-scroll-content::-webkit-scrollbar-button,
+.app-sidebar::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    -webkit-appearance: none !important;
 }
 
-.sidebar-scroll-content::-webkit-scrollbar,
 .app-sidebar::-webkit-scrollbar {
-    width: 3px !important;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
-.sidebar-scroll-content::-webkit-scrollbar-track,
-.app-sidebar::-webkit-scrollbar-track {
+/* Custom Sleek Scrollbar for Sidebar Content */
+.sidebar-scroll-content {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(148, 163, 184, 0.22) transparent !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-bottom: 28px !important;
+}
+
+.sidebar-scroll-content::-webkit-scrollbar {
+    width: 4px !important;
+}
+
+.sidebar-scroll-content::-webkit-scrollbar-track {
     background: transparent !important;
 }
 
-.sidebar-scroll-content::-webkit-scrollbar-thumb,
-.app-sidebar::-webkit-scrollbar-thumb {
-    background: rgba(130, 90, 210, 0.25) !important;
+.sidebar-scroll-content::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.25) !important;
     border-radius: 9999px !important;
+}
+
+.sidebar-scroll-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.45) !important;
+}
+
+body.theme-light .sidebar-scroll-content,
+[data-theme="light"] .sidebar-scroll-content {
+    scrollbar-color: rgba(130, 90, 210, 0.28) transparent !important;
+}
+
+body.theme-light .sidebar-scroll-content::-webkit-scrollbar-thumb,
+[data-theme="light"] .sidebar-scroll-content::-webkit-scrollbar-thumb {
+    background: rgba(130, 90, 210, 0.28) !important;
+}
+
+body.theme-light .sidebar-scroll-content::-webkit-scrollbar-thumb:hover,
+[data-theme="light"] .sidebar-scroll-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(130, 90, 210, 0.55) !important;
 }
 
 /* Button & Badge Alignment in Sidebar Action Button */
@@ -21474,21 +22019,77 @@ body.theme-light .edit-profile-security-card,
     padding: 8px 10px !important;
     box-sizing: border-box !important;
     width: 100% !important;
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    position: relative !important;
+    z-index: 10 !important;
+    cursor: pointer !important;
+    border-radius: 14px !important;
+}
+
+.sidebar-profile-box .profile-avatar {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+}
+
+.sidebar-profile-box .profile-info {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+.sidebar-profile-box .profile-name {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    letter-spacing: 0.1px !important;
+    margin: 0 !important;
+}
+
+.sidebar-profile-box .profile-role {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.5px 6.5px !important;
+    border-radius: 9999px !important;
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.6px !important;
+    text-transform: uppercase !important;
+    line-height: 1.2 !important;
+    width: fit-content !important;
 }
 
 .sidebar-profile-actions {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 4px !important;
     flex-shrink: 0 !important;
 }
 
 .profile-key-btn,
 .profile-logout-btn {
-    width: 30px !important;
-    height: 30px !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
     padding: 0 !important;
-    border-radius: 9px !important;
+    border-radius: 8px !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -21503,8 +22104,8 @@ body.theme-light .edit-profile-security-card,
 .profile-key-btn i,
 .profile-logout-btn svg,
 .profile-logout-btn i {
-    width: 15px !important;
-    height: 15px !important;
+    width: 14px !important;
+    height: 14px !important;
     stroke-width: 2px !important;
     display: block !important;
     transition: transform 0.2s ease, stroke 0.2s ease !important;
@@ -22123,7 +22724,9 @@ body.theme-light .sidebar-theme-section {
     background: transparent !important;
     border: none !important;
     border-radius: 0 !important;
-    margin-top: 10px !important;
+    margin-top: 14px !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
 }
 
 html[data-theme="light"] .sidebar-profile-box,
@@ -22131,9 +22734,11 @@ body.theme-light .sidebar-profile-box {
     background: #FFFFFF !important;
     border: 1.5px solid rgba(130, 90, 210, 0.22) !important;
     border-radius: 16px !important;
-    padding: 10px 12px !important;
+    padding: 8px 10px !important;
     box-shadow: 0 4px 18px rgba(80, 50, 140, 0.08) !important;
     margin-top: auto !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -22155,7 +22760,7 @@ body.theme-light .sidebar-profile-box .profile-avatar {
 html[data-theme="light"] .sidebar-profile-box .profile-name,
 body.theme-light .sidebar-profile-box .profile-name {
     color: #17152B !important;
-    font-size: 12.5px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
 }
 
@@ -22163,7 +22768,7 @@ html[data-theme="light"] .sidebar-profile-box .profile-role,
 body.theme-light .sidebar-profile-box .profile-role {
     color: #7956E8 !important;
     font-weight: 800 !important;
-    font-size: 8.5px !important;
+    font-size: 8px !important;
     letter-spacing: 0.06em !important;
 }
 
@@ -24266,9 +24871,9 @@ body.theme-mono {
     --search-bg: #161615;
     --search-border: #292825;
     --badge-bg: #22211F;
-    --active-bg: #E1DCCF;
-    --active-border: #E1DCCF;
-    --active-color: #11110F;
+    --active-bg: #242320;
+    --active-border: #454139;
+    --active-color: #F2F0E9;
     --text-main: #F2F0E9;
     --text-primary: #F2F0E9;
     --text-secondary: #AAA79F;
@@ -24557,7 +25162,9 @@ body.theme-mono .mono-bg-schematic-lower {
         position: -webkit-sticky !important;
         position: sticky !important;
         top: 16px !important;
-        width: 240px !important;
+        width: 268px !important;
+        min-width: 268px !important;
+        max-width: 268px !important;
         height: calc(100vh - 32px) !important;
         max-height: calc(100vh - 32px) !important;
         margin: 0 !important;
@@ -24742,11 +25349,11 @@ body.theme-mono .tag-pill:hover {
 
 html[data-theme="mono"] .tag-pill.active,
 body.theme-mono .tag-pill.active {
-    background: #E1DCCF !important;
-    border-color: #E1DCCF !important;
-    color: #11110F !important;
+    background: #242320 !important;
+    border-color: #C8BFA8 !important;
+    color: #F2F0E9 !important;
     font-weight: 600 !important;
-    box-shadow: none !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* 5. Component Vault Theme Overrides (Midnight Mono) */
@@ -24790,17 +25397,17 @@ body.theme-mono .vault-category-pills .tag-pill:hover {
 
 html[data-theme="mono"] .vault-category-pills .tag-pill.active,
 body.theme-mono .vault-category-pills .tag-pill.active {
-    background: #E1DCCF !important;
-    color: #11110F !important;
-    border-color: #E1DCCF !important;
-    box-shadow: 0 2px 8px rgba(225, 220, 207, 0.25) !important;
+    background: #242320 !important;
+    color: #F2F0E9 !important;
+    border-color: #C8BFA8 !important;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35) !important;
 }
 
 html[data-theme="mono"] .vault-category-pills .tag-pill.active i,
 html[data-theme="mono"] .vault-category-pills .tag-pill.active svg,
 body.theme-mono .vault-category-pills .tag-pill.active i,
 body.theme-mono .vault-category-pills .tag-pill.active svg {
-    color: #11110F !important;
+    color: #C8BFA8 !important;
     stroke: #11110F !important;
 }
 
@@ -25510,17 +26117,6 @@ body.theme-mono .profile-logout-btn:active {
     transform: translateY(0) scale(0.96) !important;
 }
 
-html[data-theme="mono"] .sidebar-scroll-content::after,
-body.theme-mono .sidebar-scroll-content::after {
-    content: "SYS.VER // 2.13.0 // JIIT-128" !important;
-    display: block !important;
-    font-family: ui-monospace, monospace !important;
-    font-size: 7.5px !important;
-    color: #55534F !important;
-    letter-spacing: 0.14em !important;
-    text-align: center !important;
-    padding: 16px 0 8px 0 !important;
-}
 
 /* Floating Capsule Navbar */
 html[data-theme="mono"] .nav-capsule,
@@ -25545,8 +26141,10 @@ body.theme-mono .nav-link:hover {
 
 html[data-theme="mono"] .nav-link.active,
 body.theme-mono .nav-link.active {
-    background: #E1DCCF !important;
-    color: #11110F !important;
+    background: #242320 !important;
+    border: 1px solid #454139 !important;
+    border-left: 3px solid #C8BFA8 !important;
+    color: #F2F0E9 !important;
     font-weight: 600 !important;
 }
 
@@ -25554,7 +26152,7 @@ html[data-theme="mono"] .nav-link.active i,
 html[data-theme="mono"] .nav-link.active svg,
 body.theme-mono .nav-link.active i,
 body.theme-mono .nav-link.active svg {
-    color: #11110F !important;
+    color: #C8BFA8 !important;
 }
 
 /* 9. Topbar Controls, Notifications & Theme Box */
@@ -25739,18 +26337,18 @@ body.theme-mono .notif-tab-btn:hover {
 
 html[data-theme="mono"] .notif-tab-btn.active,
 body.theme-mono .notif-tab-btn.active {
-    background: #E1DCCF !important;
-    border-color: #E1DCCF !important;
-    color: #11110F !important;
+    background: #242320 !important;
+    border-color: #C8BFA8 !important;
+    color: #F2F0E9 !important;
     font-weight: 600 !important;
-    box-shadow: none !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
 html[data-theme="mono"] .notif-tab-btn.active i,
 html[data-theme="mono"] .notif-tab-btn.active svg,
 body.theme-mono .notif-tab-btn.active i,
 body.theme-mono .notif-tab-btn.active svg {
-    color: #11110F !important;
+    color: #C8BFA8 !important;
 }
 
 html[data-theme="mono"] .notif-tab-count,
@@ -27355,9 +27953,24 @@ body.theme-light .header-notif-badge {
    STRICT ADMIN-ONLY ACCESS & SOLID NOTIFICATION DROPDOWN POPUP ENFORCEMENT
    ========================================================================== */
 
+/* Permanently hide Member Approvals and Hardware Logs cards from dashboard */
+#dash-card-admin,
+#dash-card-hardware-logs {
+    display: none !important;
+}
+
+/* Sections must strictly be hidden when not active */
+#hardware-logs-view:not(.active),
+#admin-view:not(.active),
+#dashboard-view:not(.active),
+#inventory-view:not(.active),
+#developers-view:not(.active),
+#profile-view:not(.active) {
+    display: none !important;
+}
+
 /* Non-Admin Access Control: Completely hide Admin & Logs UI elements */
 body:not(.user-is-admin) #side-nav-admin,
-body:not(.user-is-admin) #dash-card-admin,
 body:not(.user-is-admin) #admin-view,
 body:not(.user-is-admin) #side-nav-hardware-logs,
 body:not(.user-is-admin) #dash-card-hardware-logs,
@@ -28888,8 +29501,7 @@ body.theme-light .admin-audit-block-card {
 
 /* Tactile Password Visibility Toggle Button Frame */
 .password-toggle-btn,
-.auth-card .password-toggle-btn,
-#reset-password-modal .password-toggle-btn {
+.auth-card .password-toggle-btn {
     position: absolute !important;
     right: 8px !important;
     top: 50% !important;
@@ -28910,8 +29522,7 @@ body.theme-light .admin-audit-block-card {
 }
 
 .password-toggle-btn:hover,
-.auth-card .password-toggle-btn:hover,
-#reset-password-modal .password-toggle-btn:hover {
+.auth-card .password-toggle-btn:hover {
     background: #282724 !important;
     border-color: #756E60 !important;
     color: #F2F0E9 !important;
@@ -28938,8 +29549,7 @@ body.theme-light .admin-audit-block-card {
 .auth-card #login-password,
 .auth-card #signup-password,
 .auth-card input[type="password"],
-.auth-card .input-icon-wrapper input[type="password"],
-#reset-password-modal input[type="password"] {
+.auth-card .input-icon-wrapper input[type="password"] {
     background: #121211 !important;
     background-color: #121211 !important;
     border: 1px solid #2B2A27 !important;
@@ -28957,14 +29567,122 @@ body.theme-light .admin-audit-block-card {
 
 .auth-card #login-password:focus,
 .auth-card #signup-password:focus,
-.auth-card input[type="password"]:focus,
-#reset-password-modal input[type="password"]:focus {
+.auth-card input[type="password"]:focus {
     border-color: #756E60 !important;
     background: #161514 !important;
     background-color: #161514 !important;
     color: #F2F0E9 !important;
     -webkit-text-fill-color: #F2F0E9 !important;
     box-shadow: 0 0 0 2px rgba(200, 191, 168, 0.15) !important;
+}
+
+/* ==========================================================================
+   CLEAN, CONTRAST-OPTIMIZED RESET PASSWORD MODAL STYLES
+   ========================================================================== */
+#reset-password-modal .modal-header h2 {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    margin-bottom: 6px !important;
+}
+
+#reset-password-modal #reset-modal-subtitle {
+    color: #475569 !important;
+    font-size: 13px !important;
+}
+
+#reset-password-modal .label-row-cyber label {
+    color: #1e293b !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+}
+
+#reset-password-modal .label-row-cyber .cyber-badge-tag,
+#reset-password-modal .label-row-cyber .cyber-badge-req {
+    background: rgba(124, 58, 237, 0.08) !important;
+    color: #7c3aed !important;
+    border: 1px solid rgba(124, 58, 237, 0.2) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+}
+
+#reset-password-modal input {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    caret-color: #7c3aed !important;
+    height: 44px !important;
+    padding-left: 38px !important;
+    padding-right: 44px !important;
+    border-radius: 8px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+#reset-password-modal input:focus {
+    border-color: #7c3aed !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
+}
+
+#reset-password-modal input::placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+}
+
+#reset-password-modal input[readonly] {
+    background: #f1f5f9 !important;
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    -webkit-text-fill-color: #475569 !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed !important;
+}
+
+#reset-password-modal .input-icon {
+    color: #64748b !important;
+}
+
+#reset-password-modal .password-toggle-btn {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 32px !important;
+    height: 32px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 6px !important;
+    color: #64748b !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease !important;
+    z-index: 5 !important;
+}
+
+#reset-password-modal .password-toggle-btn:hover {
+    background: rgba(0, 0, 0, 0.06) !important;
+    color: #0f172a !important;
+    transform: translateY(-50%) !important;
+    box-shadow: none !important;
+}
+
+#reset-password-modal .password-toggle-btn svg,
+#reset-password-modal .password-toggle-btn i {
+    width: 16px !important;
+    height: 16px !important;
+    stroke-width: 2 !important;
+    color: inherit !important;
 }
 
 /* Complete Chromium & WebKit Autofill Immunity (Midnight Mono - Dark Theme) */
@@ -29149,7 +29867,9 @@ body.theme-light {
         position: -webkit-sticky !important;
         position: sticky !important;
         top: 16px !important;
-        width: 240px !important;
+        width: 268px !important;
+        min-width: 268px !important;
+        max-width: 268px !important;
         height: calc(100vh - 32px) !important;
         max-height: calc(100vh - 32px) !important;
         align-self: start !important;
@@ -29666,44 +30386,48 @@ body.theme-mono .sidebar-item:hover svg {
 /* Active Main Navigation Page (e.g. Dashboard) in Mono Theme */
 html[data-theme="mono"] .sidebar-nav-link.active,
 body.theme-mono .sidebar-nav-link.active {
-    color: #11110F !important;
-    background: #E1DCCF !important;
-    border: 1px solid #E1DCCF !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    color: #F2F0E9 !important;
+    background: #242320 !important;
+    border: 1px solid #454139 !important;
+    border-left: 3px solid #C8BFA8 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
 }
 
 html[data-theme="mono"] .sidebar-nav-link.active span,
 body.theme-mono .sidebar-nav-link.active span {
     font-weight: 600 !important;
+    color: #F2F0E9 !important;
 }
 
 html[data-theme="mono"] .sidebar-nav-link.active i,
 body.theme-mono .sidebar-nav-link.active i,
 html[data-theme="mono"] .sidebar-nav-link.active svg,
 body.theme-mono .sidebar-nav-link.active svg {
-    color: #11110F !important;
-    stroke: #11110F !important;
+    color: #C8BFA8 !important;
+    stroke: #C8BFA8 !important;
 }
 
 body.view-inventory-view html[data-theme="mono"] .sidebar-item.active,
 body.view-inventory-view.theme-mono .sidebar-item.active {
-    color: #11110F !important;
-    background: #E1DCCF !important;
-    border: 1px solid #E1DCCF !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    color: #F2F0E9 !important;
+    background: #242320 !important;
+    border: 1px solid #454139 !important;
+    border-left: 3px solid #C8BFA8 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
 }
 
 body.view-inventory-view html[data-theme="mono"] .sidebar-item.active span,
 body.view-inventory-view.theme-mono .sidebar-item.active span {
     font-weight: 600 !important;
+    color: #F2F0E9 !important;
 }
 
 body.view-inventory-view html[data-theme="mono"] .sidebar-item.active i,
 body.view-inventory-view.theme-mono .sidebar-item.active i,
 body.view-inventory-view html[data-theme="mono"] .sidebar-item.active svg,
 body.view-inventory-view.theme-mono .sidebar-item.active svg {
-    color: #11110F !important;
-    stroke: #11110F !important;
+    color: #C8BFA8 !important;
+    stroke: #C8BFA8 !important;
 }
 
 /* ========================================================
@@ -30174,6 +30898,378 @@ body.is-scrolling * {
     }
 }
 
+/* ==========================================================================
+   CYBER DECENT — COMPLETE THEME
+   Aesthetic, Sleek, Futuristic Dark Theme with Azure & Electric Cyan Accents
+   Scoped strictly to html[data-theme="decent"] and body.theme-decent
+   ========================================================================== */
 
+html[data-theme="decent"],
+body.theme-decent {
+    /* Base Surfaces */
+    --bg-primary: #06090e;
+    --bg-secondary: #0a0e16;
+    --bg-surface: #0e1522;
+    --bg-glass: rgba(14, 21, 34, 0.85);
+    --bg-glass-hover: rgba(20, 31, 50, 0.9);
+    --bg-glass-active: rgba(28, 44, 70, 0.95);
+    --border-glass: rgba(56, 189, 248, 0.16);
+    --border-glass-hover: rgba(56, 189, 248, 0.35);
+    --card-bg-gradient: linear-gradient(180deg, #0e1522 0%, #090e18 100%);
+    --card-item-bg: #0c121d;
 
+    /* Interactive & Search */
+    --search-bg: #090e18;
+    --search-border: rgba(56, 189, 248, 0.2);
+    --badge-bg: rgba(56, 189, 248, 0.12);
+    --active-bg: rgba(0, 240, 255, 0.1);
+    --active-border: rgba(0, 240, 255, 0.35);
+    --active-color: #ffffff;
 
+    /* Theme Accents */
+    --neon-cyan: #00f0ff;
+    --neon-purple: #818cf8;
+    --neon-pink: #f472b6;
+    --neon-yellow: #fbbf24;
+    --neon-green: #34d399;
+
+    /* Typography */
+    --text-main: #f8fafc;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-dim: #475569;
+    --white: #ffffff;
+
+    /* Glows */
+    --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.25);
+    --glow-purple: 0 0 20px rgba(129, 140, 248, 0.25);
+    --glow-card: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 240, 255, 0.08);
+}
+
+/* Background & Global Viewport */
+html[data-theme="decent"] {
+    background-color: #06090e !important;
+}
+
+html[data-theme="decent"] body,
+body.theme-decent {
+    background-color: #06090e !important;
+    background-image: 
+        radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.08) 0%, transparent 65%),
+        linear-gradient(rgba(56, 189, 248, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.02) 1px, transparent 1px) !important;
+    background-size: 100% 100%, 32px 32px, 32px 32px !important;
+    color: #f8fafc !important;
+}
+
+/* Sidebar & Navigation in Cyber Decent */
+html[data-theme="decent"] .app-sidebar,
+body.theme-decent .app-sidebar {
+    background: #090e18 !important;
+    border-right: 1px solid rgba(56, 189, 248, 0.16) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="decent"] .sidebar-nav-link,
+body.theme-decent .sidebar-nav-link,
+html[data-theme="decent"] .sidebar-item,
+body.theme-decent .sidebar-item {
+    background: #0c121d !important;
+    border: 1px solid rgba(56, 189, 248, 0.15) !important;
+    color: #94a3b8 !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+html[data-theme="decent"] .sidebar-nav-link:hover,
+body.theme-decent .sidebar-nav-link:hover,
+html[data-theme="decent"] .sidebar-item:hover,
+body.theme-decent .sidebar-item:hover {
+    background: #111b2b !important;
+    border-color: rgba(0, 240, 255, 0.4) !important;
+    color: #ffffff !important;
+    transform: translateX(2px) !important;
+}
+
+html[data-theme="decent"] .sidebar-nav-link:hover i,
+html[data-theme="decent"] .sidebar-nav-link:hover svg,
+body.theme-decent .sidebar-nav-link:hover i,
+body.theme-decent .sidebar-nav-link:hover svg {
+    color: #00f0ff !important;
+    stroke: #00f0ff !important;
+}
+
+/* Active Navigation Links in Cyber Decent */
+html[data-theme="decent"] .sidebar-nav-link.active,
+body.theme-decent .sidebar-nav-link.active,
+html[data-theme="decent"] .sidebar-item.active,
+body.theme-decent .sidebar-item.active,
+body.view-inventory-view html[data-theme="decent"] .sidebar-item.active,
+body.view-inventory-view.theme-decent .sidebar-item.active {
+    color: #ffffff !important;
+    background: rgba(0, 240, 255, 0.1) !important;
+    border: 1px solid rgba(0, 240, 255, 0.35) !important;
+    border-left: 3px solid #00f0ff !important;
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-theme="decent"] .sidebar-nav-link.active span,
+body.theme-decent .sidebar-nav-link.active span,
+html[data-theme="decent"] .sidebar-item.active span,
+body.theme-decent .sidebar-item.active span {
+    font-weight: 600 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="decent"] .sidebar-nav-link.active i,
+body.theme-decent .sidebar-nav-link.active i,
+html[data-theme="decent"] .sidebar-nav-link.active svg,
+body.theme-decent .sidebar-nav-link.active svg,
+html[data-theme="decent"] .sidebar-item.active i,
+body.theme-decent .sidebar-item.active i,
+html[data-theme="decent"] .sidebar-item.active svg,
+body.theme-decent .sidebar-item.active svg {
+    color: #00f0ff !important;
+    stroke: #00f0ff !important;
+}
+
+/* Header & Controls in Cyber Decent */
+html[data-theme="decent"] .viewport-header,
+body.theme-decent .viewport-header,
+html[data-theme="decent"] .app-header,
+body.theme-decent .app-header {
+    background: rgba(9, 14, 24, 0.9) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.16) !important;
+}
+
+html[data-theme="decent"] #header-theme-select,
+body.theme-decent #header-theme-select,
+html[data-theme="decent"] #nav-theme-select,
+body.theme-decent #nav-theme-select {
+    background: #0c121d !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    color: #f8fafc !important;
+    border-radius: 8px !important;
+}
+
+html[data-theme="decent"] #header-theme-select option,
+body.theme-decent #header-theme-select option,
+html[data-theme="decent"] #nav-theme-select option,
+body.theme-decent #nav-theme-select option {
+    background: #090e18 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="decent"] .header-theme-box,
+body.theme-decent .header-theme-box,
+html[data-theme="decent"] .nav-theme-box,
+body.theme-decent .nav-theme-box {
+    background: #0c121d !important;
+    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+}
+
+html[data-theme="decent"] .header-notif-btn,
+body.theme-decent .header-notif-btn,
+html[data-theme="decent"] .notif-btn,
+body.theme-decent .notif-btn {
+    background: #0c121d !important;
+    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="decent"] .header-notif-btn:hover,
+body.theme-decent .header-notif-btn:hover {
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.2) !important;
+}
+
+html[data-theme="decent"] .header-notif-badge,
+body.theme-decent .header-notif-badge,
+html[data-theme="decent"] .header-cart-badge,
+body.theme-decent .header-cart-badge {
+    background: #00f0ff !important;
+    color: #04111d !important;
+    font-weight: 700 !important;
+}
+
+/* Cards & Panels in Cyber Decent */
+html[data-theme="decent"] .dash-card,
+body.theme-decent .dash-card,
+html[data-theme="decent"] .dashboard-greeting-card,
+body.theme-decent .dashboard-greeting-card,
+html[data-theme="decent"] .vault-toolbar-card,
+body.theme-decent .vault-toolbar-card,
+html[data-theme="decent"] .inventory-card,
+body.theme-decent .inventory-card,
+html[data-theme="decent"] .admin-panel-card,
+body.theme-decent .admin-panel-card {
+    background: linear-gradient(180deg, #0e1522 0%, #090e18 100%) !important;
+    border: 1px solid rgba(56, 189, 248, 0.16) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="decent"] .dash-card:hover,
+body.theme-decent .dash-card:hover,
+html[data-theme="decent"] .inventory-card:hover,
+body.theme-decent .inventory-card:hover {
+    border-color: rgba(0, 240, 255, 0.4) !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(0, 240, 255, 0.12) !important;
+}
+
+/* Tables & Ledger in Cyber Decent */
+html[data-theme="decent"] .admin-ledger-table,
+body.theme-decent .admin-ledger-table,
+html[data-theme="decent"] .admin-table,
+body.theme-decent .admin-table,
+html[data-theme="decent"] .issue-ledger-table-wrap,
+body.theme-decent .issue-ledger-table-wrap {
+    background: #090e18 !important;
+    border: 1px solid rgba(56, 189, 248, 0.16) !important;
+}
+
+html[data-theme="decent"] .admin-ledger-table th,
+body.theme-decent .admin-ledger-table th,
+html[data-theme="decent"] .admin-table th,
+body.theme-decent .admin-table th {
+    background: #0c121d !important;
+    color: #38bdf8 !important;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2) !important;
+    font-weight: 600 !important;
+}
+
+html[data-theme="decent"] .admin-ledger-table td,
+body.theme-decent .admin-ledger-table td,
+html[data-theme="decent"] .admin-table td,
+body.theme-decent .admin-table td {
+    border-bottom: 1px solid rgba(56, 189, 248, 0.08) !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="decent"] .admin-ledger-table tr:hover,
+body.theme-decent .admin-ledger-table tr:hover,
+html[data-theme="decent"] .admin-table tbody tr:hover,
+body.theme-decent .admin-table tbody tr:hover {
+    background: rgba(0, 240, 255, 0.04) !important;
+}
+
+/* Tag Pills & Filter Buttons in Cyber Decent */
+html[data-theme="decent"] .tag-pill,
+body.theme-decent .tag-pill,
+html[data-theme="decent"] .ledger-filter-pill,
+body.theme-decent .ledger-filter-pill {
+    background: #0c121d !important;
+    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+    color: #94a3b8 !important;
+    transition: all 0.2s ease !important;
+}
+
+html[data-theme="decent"] .tag-pill:hover,
+body.theme-decent .tag-pill:hover,
+html[data-theme="decent"] .ledger-filter-pill:hover,
+body.theme-decent .ledger-filter-pill:hover {
+    background: #111b2b !important;
+    border-color: rgba(0, 240, 255, 0.4) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="decent"] .tag-pill.active,
+body.theme-decent .tag-pill.active,
+html[data-theme="decent"] .ledger-filter-pill.active,
+body.theme-decent .ledger-filter-pill.active {
+    background: rgba(0, 240, 255, 0.12) !important;
+    border-color: #00f0ff !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.2) !important;
+}
+
+/* Primary Buttons in Cyber Decent */
+html[data-theme="decent"] .btn-primary,
+body.theme-decent .btn-primary,
+html[data-theme="decent"] .auth-card .btn-primary,
+body.theme-decent .auth-card .btn-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #00f0ff 100%) !important;
+    color: #04111d !important;
+    font-weight: 700 !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0, 240, 255, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+html[data-theme="decent"] .btn-primary:hover,
+body.theme-decent .btn-primary:hover,
+html[data-theme="decent"] .auth-card .btn-primary:hover,
+body.theme-decent .auth-card .btn-primary:hover {
+    box-shadow: 0 6px 22px rgba(0, 240, 255, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Input Fields in Cyber Decent */
+html[data-theme="decent"] input,
+body.theme-decent input,
+html[data-theme="decent"] select,
+body.theme-decent select,
+html[data-theme="decent"] textarea,
+body.theme-decent textarea {
+    background: #080c14 !important;
+    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="decent"] input:focus,
+body.theme-decent input:focus,
+html[data-theme="decent"] select:focus,
+body.theme-decent select:focus,
+html[data-theme="decent"] textarea:focus,
+body.theme-decent textarea:focus {
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.25) !important;
+}
+
+html[data-theme="decent"] input::placeholder,
+body.theme-decent input::placeholder {
+    color: #64748b !important;
+}
+
+/* ========================================================
+   MOBILE FLUIDITY & ZERO-LAG PERFORMANCE ACCELERATION
+   ======================================================== */
+@media (max-width: 768px), (pointer: coarse) {
+    /* Bypass expensive multi-layer blur filters during mobile touch scrolling to maintain silky 60-120fps */
+    .glass,
+    .modal-content,
+    .dashboard-metric-tile,
+    .profile-loan-card,
+    .card,
+    .notif-dropdown {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    /* Hardware acceleration & smooth touch scrolling across all view containers */
+    .main-content,
+    .sidebar-scroll-content,
+    .dashboard-section,
+    .inventory-section,
+    .admin-table-responsive,
+    .modal-body,
+    .notif-dropdown-body {
+        -webkit-overflow-scrolling: touch !important;
+        transform: translateZ(0);
+        will-change: scroll-position;
+    }
+
+    /* Simplify shadow rendering overhead on mobile GPUs */
+    .inventory-card,
+    .profile-loan-card,
+    .dashboard-metric-tile {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    #canvas-3d {
+        display: none !important;
+    }
+}

@@ -61,22 +61,68 @@ export const getAuditLogs = async (req: AuthRequest, res: Response) => {
     const requestedDays = Math.min(Math.max(Number(days) || RETENTION_DAYS, 1), 7);
     const maxLimit = Math.min(Math.max(Number(limit) || 2500, 1), 5000);
 
+    const cacheKey = `cicr:cache:audit:${category || 'all'}:${requestedDays}:${search || ''}:${day || ''}:${maxLimit}`;
+    const cached = await cacheGetJSON<any>(cacheKey);
+    if (cached) {
+      return res.status(200).json(cached);
+    }
+
     const cutoffTime = Date.now() - requestedDays * 24 * 60 * 60 * 1000;
     const cutoffDate = new Date(cutoffTime).toISOString();
 
-    // 1. Fetch raw 7-day logs to calculate true activity spectrum & category counts
-    const { data: raw7DayLogs, error: rawError } = await dbRead
+    // Prepare filtered query
+    let filteredQuery = dbRead
       .from('audit_logs')
-      .select('id, action, timestamp')
+      .select('*, users(name, email, role), inventory(name, category)')
       .gte('timestamp', cutoffDate)
       .order('timestamp', { ascending: false })
-      .limit(5000);
+      .limit(maxLimit);
 
-    if (rawError) throw rawError;
+    // Filter by specific day if requested (YYYY-MM-DD)
+    if (day && typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day.trim())) {
+      const targetDay = day.trim();
+      const nextDay = new Date(new Date(targetDay).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      filteredQuery = filteredQuery.gte('timestamp', `${targetDay}T00:00:00.000Z`).lt('timestamp', `${nextDay}T00:00:00.000Z`);
+    }
 
-    const base7DayLogs = raw7DayLogs || [];
+    if (category && typeof category === 'string' && category !== 'all') {
+      const cat = category.toLowerCase();
+      if (cat === 'auth') {
+        filteredQuery = filteredQuery.in('action', ['Sign In', 'Sign Up', 'User Approved', 'User Rejected', 'Role Changed', 'User Deleted', 'Password Reset']);
+      } else if (cat === 'inventory') {
+        filteredQuery = filteredQuery.in('action', ['Item Added', 'Item Edited', 'Item Deleted', 'Stock Alert', 'Low Stock']);
+      } else if (cat === 'hardware') {
+        filteredQuery = filteredQuery.in('action', ['Hardware Requested', 'Bulk Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Rejected Request', 'Hardware Cancelled']);
+      } else if (cat === 'loans') {
+        filteredQuery = filteredQuery.in('action', ['Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested', 'Ledger Record Deleted']);
+      } else if (cat === 'system') {
+        filteredQuery = filteredQuery.in('action', ['System Event', 'System Alert', 'Auto-Sync', 'Database Purge', 'Retention Prune', 'Maintenance']);
+      }
+    }
 
-    // 2. Compute 7-day daily activity spectrum (Today back 6 days)
+    if (search && typeof search === 'string' && search.trim()) {
+      const term = search.trim();
+      filteredQuery = filteredQuery.or(`action.ilike.%${escapeOrSegment(term)}%,description.ilike.%${escapeOrSegment(term)}%`);
+    }
+
+    // Execute raw telemetry query and filtered data query in parallel for maximum speed
+    const [rawRes, filteredRes] = await Promise.all([
+      dbRead
+        .from('audit_logs')
+        .select('id, action, timestamp')
+        .gte('timestamp', cutoffDate)
+        .order('timestamp', { ascending: false })
+        .limit(5000),
+      filteredQuery
+    ]);
+
+    if (rawRes.error) throw rawRes.error;
+    if (filteredRes.error) throw filteredRes.error;
+
+    const base7DayLogs = rawRes.data || [];
+    const allLogs = filteredRes.data || [];
+
+    // Compute daily activity spectrum
     const dailyMap: Record<string, number> = {};
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const dailyCounts: Array<{ date: string; dayName: string; count: number; percentage: number }> = [];
@@ -92,7 +138,7 @@ export const getAuditLogs = async (req: AuthRequest, res: Response) => {
       dailyCounts.push({ date: ymd, dayName: label, count: 0, percentage: 0 });
     }
 
-    // 3. Compute Category Distribution across all 7-day logs
+    // Compute Category Distribution across all 7-day logs
     const categoryCounts = {
       all: base7DayLogs.length,
       auth: 0,
@@ -103,28 +149,25 @@ export const getAuditLogs = async (req: AuthRequest, res: Response) => {
     };
 
     base7DayLogs.forEach((l: any) => {
-      // Daily count
       const logDate = (l.timestamp ? new Date(l.timestamp).toISOString() : '').split('T')[0];
       if (dailyMap[logDate] !== undefined) {
         dailyMap[logDate]++;
       }
 
-      // Category count
       const act = l.action || '';
       if (['Sign In', 'Sign Up', 'User Approved', 'User Rejected', 'Role Changed', 'User Deleted', 'Password Reset'].includes(act)) {
         categoryCounts.auth++;
       } else if (['Item Added', 'Item Edited', 'Item Deleted', 'Stock Alert', 'Low Stock'].includes(act)) {
         categoryCounts.inventory++;
-      } else if (['Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Hardware Cancelled'].includes(act)) {
+      } else if (['Hardware Requested', 'Bulk Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Rejected Request', 'Hardware Cancelled'].includes(act)) {
         categoryCounts.hardware++;
-      } else if (['Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested'].includes(act)) {
+      } else if (['Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested', 'Ledger Record Deleted'].includes(act)) {
         categoryCounts.loans++;
       } else {
         categoryCounts.system++;
       }
     });
 
-    // Populate daily counts with percentages
     let maxDayCount = 1;
     dailyCounts.forEach(dc => {
       dc.count = dailyMap[dc.date] || 0;
@@ -134,48 +177,7 @@ export const getAuditLogs = async (req: AuthRequest, res: Response) => {
       dc.percentage = Math.round((dc.count / maxDayCount) * 100);
     });
 
-    // 4. Query filtered logs list
-    let query = dbRead
-      .from('audit_logs')
-      .select('*, users(name, email, role), inventory(name, category)')
-      .gte('timestamp', cutoffDate)
-      .order('timestamp', { ascending: false })
-      .limit(maxLimit);
-
-    // Filter by specific day if requested (YYYY-MM-DD)
-    if (day && typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day.trim())) {
-      const targetDay = day.trim();
-      const nextDay = new Date(new Date(targetDay).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      query = query.gte('timestamp', `${targetDay}T00:00:00.000Z`).lt('timestamp', `${nextDay}T00:00:00.000Z`);
-    }
-
-    if (category && typeof category === 'string' && category !== 'all') {
-      const cat = category.toLowerCase();
-      if (cat === 'auth') {
-        query = query.in('action', ['Sign In', 'Sign Up', 'User Approved', 'User Rejected', 'Role Changed', 'User Deleted', 'Password Reset']);
-      } else if (cat === 'inventory') {
-        query = query.in('action', ['Item Added', 'Item Edited', 'Item Deleted', 'Stock Alert', 'Low Stock']);
-      } else if (cat === 'hardware') {
-        query = query.in('action', ['Hardware Requested', 'Hardware Approved', 'Hardware Rejected', 'Hardware Cancelled']);
-      } else if (cat === 'loans') {
-        query = query.in('action', ['Borrowed', 'Returned', 'OTP Requested', 'Item Borrowed', 'Item Returned', 'Approved Return', 'Return Requested']);
-      } else if (cat === 'system') {
-        query = query.in('action', ['System Event', 'System Alert', 'Auto-Sync', 'Database Purge', 'Retention Prune', 'Maintenance']);
-      }
-    }
-
-    if (search && typeof search === 'string' && search.trim()) {
-      const term = search.trim();
-      query = query.or(`action.ilike.%${escapeOrSegment(term)}%,description.ilike.%${escapeOrSegment(term)}%`);
-    }
-
-    const { data: logs, error } = await query;
-
-    if (error) throw error;
-
-    const allLogs = logs || [];
-
-    return res.status(200).json({
+    const payload = {
       status: 'success',
       count: allLogs.length,
       retentionDays: requestedDays,
@@ -183,7 +185,12 @@ export const getAuditLogs = async (req: AuthRequest, res: Response) => {
       dailyCounts,
       categoryCounts,
       data: allLogs
-    });
+    };
+
+    // Cache telemetry in Redis for 15s to keep dashboard blazing fast
+    cacheSetJSON(cacheKey, payload, 15).catch(() => {});
+
+    return res.status(200).json(payload);
   } catch (err: any) {
     return res.status(500).json({ status: 'error', message: err.message });
   }

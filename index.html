@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="mono">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -53,12 +53,18 @@
         (function() {
             try {
                 const t = localStorage.getItem('cicr_vault_theme') || localStorage.getItem('cicr_theme');
-                if (t === 'light') {
+                if (t === 'mono' || t === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'mono');
+                    document.documentElement.classList.add('theme-mono');
+                    document.documentElement.classList.remove('theme-light', 'theme-decent');
+                } else if (t === 'decent') {
+                    document.documentElement.setAttribute('data-theme', 'decent');
+                    document.documentElement.classList.add('theme-decent');
+                    document.documentElement.classList.remove('theme-light', 'theme-mono');
+                } else {
                     document.documentElement.setAttribute('data-theme', 'light');
                     document.documentElement.classList.add('theme-light');
-                } else if (t === 'mono' || t === 'dark') {
-                    document.documentElement.setAttribute('data-theme', 'mono');
-                    document.documentElement.classList.remove('theme-light');
+                    document.documentElement.classList.remove('theme-mono', 'theme-decent');
                 }
             } catch (e) {}
         })();
@@ -721,7 +727,7 @@
     <!-- Auth Overlay (Login/Signup) -->
     <div class="auth-overlay" id="auth-overlay">
         <div class="auth-card glass">
-            <button type="button" class="auth-theme-toggle" id="auth-theme-toggle" title="Switch Theme (Midnight Mono / Robo Lab)">
+            <button type="button" class="auth-theme-toggle" id="auth-theme-toggle" title="Switch Theme (Robosoccer / Cyber Decent / Midnight Mono)">
                 <i data-lucide="palette"></i>
                 <span class="auth-theme-label">Theme</span>
             </button>
@@ -893,8 +899,9 @@
                 <div class="nav-theme-box">
                     <i data-lucide="palette" class="nav-theme-icon"></i>
                     <select id="nav-theme-select" title="Switch Theme">
-                        <option value="mono" selected>Midnight Mono</option>
-                        <option value="light">Robo Lab</option>
+                        <option value="light" selected>Robosoccer</option>
+                        <option value="decent">Cyber Decent</option>
+                        <option value="mono">Midnight Mono</option>
                     </select>
                 </div>
                 <a class="nav-link" id="nav-logout"><i data-lucide="log-out"></i> Logout</a>
@@ -963,8 +970,7 @@
                             style="display: none !important;">
                             <i data-lucide="shield-check"></i>
                             <span>Admin Portal</span>
-                            <span class="badge" id="admin-pending-badge"
-                                style="display: none; background: #ff007a; color: #ffffff; margin-left: auto; font-size: 7.5px; padding: 1px 5px; border-radius: 9999px; font-weight: 800;">0</span>
+                            <span class="badge" id="admin-pending-badge">0</span>
                         </a>
                         <a href="#" class="sidebar-nav-link" id="side-nav-hardware-logs"
                             data-target="hardware-logs-view"
@@ -1134,8 +1140,9 @@
                     <div class="header-theme-box">
                         <i data-lucide="palette" class="header-theme-icon"></i>
                         <select id="header-theme-select" title="Switch Theme">
-                            <option value="mono" selected>Midnight Mono</option>
-                            <option value="light">Robo Lab</option>
+                            <option value="light" selected>Robosoccer</option>
+                            <option value="decent">Cyber Decent</option>
+                            <option value="mono">Midnight Mono</option>
                         </select>
                     </div>
                 </div>
@@ -1933,7 +1940,7 @@
                 </section>
 
                 <!-- Section: Component Issue & Return Ledger (Core Workspace - Just below Admin Portal - Admin Only) -->
-                <section class="hardware-logs-section" id="hardware-logs-view" style="display: none;">
+                <section class="hardware-logs-section" id="hardware-logs-view" style="display: none !important;">
                     <div class="hw-ledger-container">
                         <!-- Top Banner Header -->
                         <div class="hw-ledger-header-card glass">
@@ -2603,11 +2610,7 @@
                     data-lucide="x"></i></button>
 
             <div class="modal-header reset-header-cyber">
-                <div class="reset-cyber-badge">
-                    <i data-lucide="shield-check" class="text-cyan"></i>
-                    <span>CREDENTIAL SECURITY</span>
-                </div>
-                <h2><i data-lucide="key-round" class="text-cyan"></i> Change Password</h2>
+                <h2>Change Password</h2>
                 <p id="reset-modal-subtitle">Authenticate with your current credentials to set a new password</p>
             </div>
 
@@ -2615,11 +2618,11 @@
                 <div class="form-group">
                     <div class="label-row-cyber">
                         <label for="reset-identifier">College Email or Enrollment Number</label>
-                        <span class="cyber-badge-tag">ACCOUNT ID</span>
+                        <span class="cyber-badge-tag">ACCOUNT ID (LOCKED)</span>
                     </div>
                     <div class="input-icon-wrapper">
                         <i data-lucide="mail" class="input-icon"></i>
-                        <input type="text" id="reset-identifier" required
+                        <input type="text" id="reset-identifier" required readonly
                             placeholder="e.g. 992501030xxx or @mail.jiit.ac.in" autocomplete="username">
                     </div>
                 </div>
@@ -2741,12 +2744,11 @@
                     <div class="form-group">
                         <div class="label-row-cyber">
                             <label for="edit-profile-roll">Enrollment / Roll No</label>
-                            <span class="cyber-badge-locked"><i data-lucide="lock"></i> LOCKED</span>
+                            <span class="cyber-badge-tag">STUDENT ID</span>
                         </div>
-                        <div class="input-icon-wrapper input-locked">
+                        <div class="input-icon-wrapper">
                             <i data-lucide="hash" class="input-icon"></i>
-                            <input type="text" id="edit-profile-roll" readonly disabled value="9922103xxx"
-                                tabindex="-1">
+                            <input type="text" id="edit-profile-roll" placeholder="e.g. 9922103xxx">
                         </div>
                     </div>
                 </div>
@@ -2758,7 +2760,7 @@
                         <span class="cyber-badge-tag">DISPLAY IDENTITY</span>
                     </div>
                     <div class="input-icon-wrapper">
-                        <i data-lucide="user" class="input-icon text-cyan"></i>
+                        <i data-lucide="user" class="input-icon"></i>
                         <input type="text" id="edit-profile-name" required placeholder="Your full name">
                     </div>
                 </div>
@@ -2788,25 +2790,19 @@
                 </div>
 
                 <!-- Security & Password Reset Action Section (Integrated directly into Edit Profile) -->
-                <div class="edit-profile-security-card"
-                    style="margin-top: 14px; margin-bottom: 6px; padding: 12px 14px; background: rgba(0, 240, 255, 0.04); border: 1px solid rgba(0, 240, 255, 0.14); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                        <div
-                            style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 240, 255, 0.12); display: flex; align-items: center; justify-content: center; color: var(--neon-cyan); flex-shrink: 0;">
-                            <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+                <div class="edit-profile-security-card">
+                    <div class="security-card-left">
+                        <div class="security-icon-box">
+                            <i data-lucide="shield-check"></i>
                         </div>
-                        <div style="min-width: 0;">
-                            <div
-                                style="font-size: 13px; font-weight: 600; color: var(--text-main); font-family: 'Orbitron', sans-serif;">
-                                Account Security</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">Change your portal password & verify
-                                security</div>
+                        <div class="security-text-box">
+                            <div class="security-title">Account Security</div>
+                            <div class="security-desc">Change your portal password & verify security</div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-secondary" id="edit-profile-security-btn"
-                        style="padding: 7px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;"
+                    <button type="button" class="btn btn-secondary profile-action-btn" id="edit-profile-security-btn"
                         title="Change Password & Security">
-                        <i data-lucide="key-round" style="width: 13px; height: 13px;"></i>
+                        <i data-lucide="key-round"></i>
                         <span>Security</span>
                     </button>
                 </div>

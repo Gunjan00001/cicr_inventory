@@ -67,9 +67,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
-// Payload DOS Protection: limit JSON payload to 1mb
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+// Payload DOS Protection: limit JSON payload to 10mb (supports user profile avatars)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // High-Performance HTTP Response Compression (Gzip / Brotli)
 import compression from 'compression';
