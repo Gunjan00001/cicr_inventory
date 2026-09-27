@@ -397,9 +397,32 @@ class Background3D {
     private lastFrameTime = 0;
     private readonly frameInterval = 1000 / 30;
 
+    private isInitialized = false;
+
     constructor() {
         this.canvas = document.getElementById('canvas-3d') as HTMLCanvasElement;
         if (!this.canvas) return;
+
+        // Skip WebGL initialization on mobile & touch devices to conserve GPU memory and eliminate mobile screen flickering
+        const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+        if (isMobile) {
+            this.canvas.style.display = 'none';
+            // Lazy boot if user resizes browser from mobile to desktop
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768 && !this.isInitialized) {
+                    if (this.canvas) this.canvas.style.display = '';
+                    this.startEngine();
+                }
+            }, { passive: true });
+            return;
+        }
+
+        this.startEngine();
+    }
+
+    private startEngine() {
+        if (this.isInitialized) return;
+        this.isInitialized = true;
         this.init();
         this.createLighting();
         this.createParticles();
@@ -506,16 +529,21 @@ class Background3D {
             this.mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
         }, { passive: true });
 
-        let lastWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+        let resizeRaf: number | null = null;
         window.addEventListener('resize', () => {
-            if (Math.abs(window.innerWidth - lastWidth) < 4) return;
-            lastWidth = window.innerWidth;
-
-            this.camera.aspect = window.innerWidth / window.innerHeight;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-            const isMobile = window.innerWidth < 768;
-            this.renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
+            if (this.currentTheme === 'mono' || this.currentTheme === 'light' || window.innerWidth < 768) {
+                return;
+            }
+            if (resizeRaf) cancelAnimationFrame(resizeRaf);
+            resizeRaf = requestAnimationFrame(() => {
+                if (!this.renderer || !this.camera) return;
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                this.camera.aspect = width / height;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(width, height, false);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            });
         }, { passive: true });
     }
 
@@ -4217,10 +4245,7 @@ class ModalManager {
                         </div>
                     ` : ''}
                     ${status === 'PENDING' ? `
-                        <div class="card-request-admin-note" style="background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.25); color:#fcd34d;">
-                            <i data-lucide="clock" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
-                            Awaiting Admin Approval. You will be notified via email when reviewed.
-                        </div>
+                        <div class="card-request-admin-note" style="background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.25); color:#fcd34d;">Awaiting Admin Approval. You will be notified via email when reviewed.</div>
                     ` : ''}
                 </div>
                 ${actionsHtml}
@@ -5424,7 +5449,10 @@ class AuthManager {
             this.loginForm.reset();
             authCard?.classList.remove('auth-card-wide');
             tabLoginBtn?.classList.add('active');
+            tabLoginBtn?.setAttribute('aria-selected', 'true');
             tabSignupBtn?.classList.remove('active');
+            tabSignupBtn?.setAttribute('aria-selected', 'false');
+            setTimeout(() => this.loginUserInp?.focus(), 60);
         };
 
         const switchToSignup = () => {
@@ -5432,9 +5460,16 @@ class AuthManager {
             this.signupForm.style.display = 'block';
             this.loginErr.style.display = 'none';
             this.signupForm.reset();
+            const matchStatus = document.getElementById('signup-password-match');
+            if (matchStatus) matchStatus.style.display = 'none';
+            const confirmPassInp = document.getElementById('signup-confirm-password') as HTMLInputElement | null;
+            if (confirmPassInp) confirmPassInp.classList.remove('input-match-success', 'input-match-error');
             authCard?.classList.add('auth-card-wide');
             tabSignupBtn?.classList.add('active');
+            tabSignupBtn?.setAttribute('aria-selected', 'true');
             tabLoginBtn?.classList.remove('active');
+            tabLoginBtn?.setAttribute('aria-selected', 'false');
+            setTimeout(() => this.signupNameInp?.focus(), 60);
         };
 
         document.getElementById('go-to-signup')?.addEventListener('click', (e) => {
@@ -5482,7 +5517,7 @@ class AuthManager {
             this.promptLogout();
         });
 
-        // Password visibility toggles (tactile button frame & reliable icon swap)
+        // Tactile password visibility toggles with eye icon swaps
         const setupPasswordToggle = (toggleBtnId: string, inputId: string) => {
             const toggleBtn = document.getElementById(toggleBtnId);
             const passInput = document.getElementById(inputId) as HTMLInputElement | null;
@@ -5506,6 +5541,63 @@ class AuthManager {
 
         setupPasswordToggle('login-password-toggle', 'login-password');
         setupPasswordToggle('signup-password-toggle', 'signup-password');
+        setupPasswordToggle('signup-confirm-password-toggle', 'signup-confirm-password');
+
+        // Real-time interactive password matching & strength feedback
+        const checkPasswordMatch = () => {
+            const pass = this.signupPassInp ? this.signupPassInp.value : '';
+            const confirmPassInp = document.getElementById('signup-confirm-password') as HTMLInputElement | null;
+            const confirmPass = confirmPassInp ? confirmPassInp.value : '';
+            const matchStatus = document.getElementById('signup-password-match');
+            if (!matchStatus || !confirmPassInp) return;
+
+            if (!confirmPass) {
+                matchStatus.style.display = 'none';
+                confirmPassInp.classList.remove('input-match-success', 'input-match-error');
+                return;
+            }
+
+            matchStatus.style.display = 'flex';
+            if (pass === confirmPass) {
+                confirmPassInp.classList.add('input-match-success');
+                confirmPassInp.classList.remove('input-match-error');
+                matchStatus.className = 'password-match-status match-success';
+                matchStatus.innerHTML = '<i data-lucide="check" style="width:12px;height:12px;"></i> Passwords match';
+            } else {
+                confirmPassInp.classList.add('input-match-error');
+                confirmPassInp.classList.remove('input-match-success');
+                matchStatus.className = 'password-match-status match-error';
+                matchStatus.innerHTML = '<i data-lucide="alert-circle" style="width:12px;height:12px;"></i> Passwords do not match';
+            }
+            if ((window as any).lucide && (window as any).lucide.createIcons) {
+                (window as any).lucide.createIcons();
+            }
+        };
+
+        this.signupPassInp?.addEventListener('input', () => {
+            this.signupErr.style.display = 'none';
+            checkPasswordMatch();
+        });
+
+        const confirmPassInput = document.getElementById('signup-confirm-password');
+        confirmPassInput?.addEventListener('input', () => {
+            this.signupErr.style.display = 'none';
+            checkPasswordMatch();
+        });
+
+        // Dynamic auto-clearing of error messages on input interaction
+        this.loginUserInp?.addEventListener('input', () => {
+            this.loginErr.style.display = 'none';
+        });
+        this.loginPassInp?.addEventListener('input', () => {
+            this.loginErr.style.display = 'none';
+        });
+
+        [this.signupNameInp, this.signupEmailInp, this.signupUserInp, this.signupEnrollmentInp, this.signupBatchInp].forEach(inp => {
+            inp?.addEventListener('input', () => {
+                this.signupErr.style.display = 'none';
+            });
+        });
     }
 
     private static async checkAuth() {
@@ -8520,7 +8612,7 @@ class TeamShowcaseManager {
         {
             id: 'vardaan',
             name: 'Vardaan Saxena',
-            role: 'Frontend + Integration',
+            role: 'Frontend + Integration • Bug Solver',
             greeting: 'Hi, my name is',
             avatar: '/devs/vardaan.jpg',
             avatarPos: 'center 24%',
@@ -8683,7 +8775,26 @@ class TeamShowcaseManager {
             avatarImg.style.objectPosition = m.avatarPos;
         }
 
-        if (rolePill) {
+        const tagRow = document.querySelector('.hero-tag-row');
+        if (tagRow) {
+            if (m.role.includes('•')) {
+                const parts = m.role.split('•').map(s => s.trim());
+                tagRow.innerHTML = parts.map((part, idx) => `
+                    <span class="hero-role-pill ${idx > 0 ? 'hero-role-pill-secondary' : ''}" id="${idx === 0 ? 'hero-role-pill' : 'hero-role-pill-secondary'}" style="color: ${idx === 0 ? m.accentColor : '#00f0ff'}; border-color: ${idx === 0 ? m.accentColor + '66' : 'rgba(0, 240, 255, 0.45)'}; box-shadow: 0 0 14px ${idx === 0 ? m.accentColor + '33' : 'rgba(0, 240, 255, 0.2)'};">
+                        ${part.toLowerCase().includes('bug') ? '<i data-lucide="bug" style="width:13px;height:13px;display:inline-block;vertical-align:-1.5px;margin-right:4px;"></i>' : ''}${part}
+                    </span>
+                `).join('');
+                if ((window as any).lucide && (window as any).lucide.createIcons) {
+                    (window as any).lucide.createIcons();
+                }
+            } else {
+                tagRow.innerHTML = `
+                    <span class="hero-role-pill" id="hero-role-pill" style="color: ${m.accentColor}; border-color: ${m.accentColor}66; box-shadow: 0 0 14px ${m.accentColor}33;">
+                        ${m.role}
+                    </span>
+                `;
+            }
+        } else if (rolePill) {
             rolePill.textContent = m.role;
             rolePill.style.color = m.accentColor;
             rolePill.style.borderColor = `${m.accentColor}66`;
@@ -11376,22 +11487,18 @@ document.addEventListener('DOMContentLoaded', () => {
     DatabaseManager.startAutoSync(45000);
     lucide.createIcons();
 
-    // High-performance scroll state tracker with automatic debounced reset & zero DOM thrashing
+    // High-performance scroll state tracker with zero DOM thrashing & debounced render
     let scrollEndTimer: any = null;
     window.addEventListener('scroll', () => {
         (window as any).isUserScrolling = true;
-        if (!document.body.classList.contains('is-scrolling')) {
-            document.body.classList.add('is-scrolling');
-        }
         clearTimeout(scrollEndTimer);
         scrollEndTimer = setTimeout(() => {
             (window as any).isUserScrolling = false;
-            document.body.classList.remove('is-scrolling');
             if ((window as any)._pendingDashboardRender && window.dashboard) {
                 (window as any)._pendingDashboardRender = false;
                 window.dashboard.renderInventory();
             }
-        }, 120);
+        }, 100);
     }, { passive: true });
 
     // Immediate section reveal activation to eliminate 1-second scroll loading delay
@@ -11407,6 +11514,16 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', syncFixedSidebarPosition, { passive: true });
     window.addEventListener('orientationchange', syncFixedSidebarPosition, { passive: true });
     syncFixedSidebarPosition();
+
+    // Browser Zoom & Viewport Resize Stabilizer (eliminates transition and layout stutter during zoom in/out)
+    let zoomResizeTimer: any = null;
+    window.addEventListener('resize', () => {
+        document.documentElement.classList.add('is-resizing');
+        clearTimeout(zoomResizeTimer);
+        zoomResizeTimer = setTimeout(() => {
+            document.documentElement.classList.remove('is-resizing');
+        }, 120);
+    }, { passive: true });
 
     // Cross-Tab Synchronization via Window Storage Event (Issue #48)
     window.addEventListener('storage', (e: StorageEvent) => {

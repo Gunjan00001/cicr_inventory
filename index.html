@@ -807,17 +807,17 @@
             </div>
 
             <!-- Interactive Auth Mode Tabs -->
-            <div class="auth-tab-switch">
-                <button type="button" class="auth-tab-btn active" id="tab-login-btn">
+            <div class="auth-tab-switch" role="tablist" aria-label="Authentication options">
+                <button type="button" class="auth-tab-btn active" id="tab-login-btn" role="tab" aria-selected="true" aria-controls="login-form">
                     <i data-lucide="log-in"></i> Sign In
                 </button>
-                <button type="button" class="auth-tab-btn" id="tab-signup-btn">
+                <button type="button" class="auth-tab-btn" id="tab-signup-btn" role="tab" aria-selected="false" aria-controls="signup-form">
                     <i data-lucide="user-plus"></i> Register
                 </button>
             </div>
 
             <!-- Login Form -->
-            <form id="login-form">
+            <form id="login-form" role="tabpanel" aria-labelledby="tab-login-btn">
                 <div class="form-group">
                     <label for="login-username">Email, Username, or Name</label>
                     <div class="input-icon-wrapper">
@@ -840,7 +840,7 @@
                         <input type="password" id="login-password" required placeholder="Enter your password"
                             autocomplete="current-password">
                         <button type="button" class="password-toggle-btn" id="login-password-toggle"
-                            title="Toggle password visibility">
+                            title="Toggle password visibility" aria-label="Toggle password visibility">
                             <i data-lucide="eye"></i>
                         </button>
                     </div>
@@ -855,7 +855,7 @@
             </form>
 
             <!-- Signup Form -->
-            <form id="signup-form" style="display: none;">
+            <form id="signup-form" role="tabpanel" aria-labelledby="tab-signup-btn" style="display: none;">
                 <div class="signup-form-grid">
                     <div class="form-group">
                         <label for="signup-name">Full Name</label>
@@ -885,10 +885,11 @@
                         <label for="signup-enrollment">Enrollment Number</label>
                         <div class="input-icon-wrapper">
                             <i data-lucide="hash" class="input-icon"></i>
-                            <input type="text" id="signup-enrollment" required placeholder="e.g. 9923103001">
+                            <input type="text" id="signup-enrollment" required placeholder="e.g. 9923103001"
+                                inputmode="numeric" pattern="[0-9]*">
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group signup-grid-full">
                         <label for="signup-batch">Academic Branch</label>
                         <div class="input-icon-wrapper">
                             <i data-lucide="git-branch" class="input-icon"></i>
@@ -902,7 +903,7 @@
                             <input type="password" id="signup-password" required placeholder="Min. 6 characters"
                                 autocomplete="new-password">
                             <button type="button" class="password-toggle-btn" id="signup-password-toggle"
-                                title="Toggle password visibility">
+                                title="Toggle password visibility" aria-label="Toggle password visibility">
                                 <i data-lucide="eye"></i>
                             </button>
                         </div>
@@ -913,7 +914,12 @@
                             <i data-lucide="shield-check" class="input-icon"></i>
                             <input type="password" id="signup-confirm-password" required placeholder="Re-enter password"
                                 autocomplete="new-password">
+                            <button type="button" class="password-toggle-btn" id="signup-confirm-password-toggle"
+                                title="Toggle confirm password visibility" aria-label="Toggle confirm password visibility">
+                                <i data-lucide="eye"></i>
+                            </button>
                         </div>
+                        <div class="password-match-status" id="signup-password-match" style="display: none;"></div>
                     </div>
                 </div>
                 <div class="auth-error-msg" id="signup-error" style="display: none;"></div>
@@ -1526,6 +1532,7 @@
                                 <div class="hero-info-side">
                                     <div class="hero-tag-row">
                                         <span class="hero-role-pill" id="hero-role-pill">Frontend + Integration</span>
+                                        <span class="hero-role-pill hero-role-pill-secondary" id="hero-role-pill-secondary"><i data-lucide="bug"></i> Bug Solver</span>
                                     </div>
 
                                     <div class="hero-greeting">Hi, my name is</div>
