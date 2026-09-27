@@ -136,21 +136,25 @@ export const getItems = async (req: Request, res: Response) => {
     const cacheKey = itemsListCacheKey(category, search);
     const now = Date.now();
     const entry = l1Cache.get(cacheKey);
-    const clientEtag = req.headers['if-none-match'];
+    const clientEtag = req.headers ? req.headers['if-none-match'] : undefined;
 
     if (entry) {
       // ETag conditional check -> 304 Not Modified
       if (clientEtag && clientEtag === entry.etag) {
-        res.setHeader('ETag', entry.etag);
-        res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=15, stale-while-revalidate=60');
+        if (typeof res.setHeader === 'function') {
+          res.setHeader('ETag', entry.etag);
+          res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=15, stale-while-revalidate=60');
+        }
         return res.status(304).end();
       }
 
       // Fresh L1 cache hit (< 0.05ms)
       if (now < entry.expiresAt) {
-        res.setHeader('ETag', entry.etag);
-        res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=15, stale-while-revalidate=60');
-        res.setHeader('X-Cache', 'HIT-L1');
+        if (typeof res.setHeader === 'function') {
+          res.setHeader('ETag', entry.etag);
+          res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=15, stale-while-revalidate=60');
+          res.setHeader('X-Cache', 'HIT-L1');
+        }
         return res.status(200).json(entry.payload);
       }
 

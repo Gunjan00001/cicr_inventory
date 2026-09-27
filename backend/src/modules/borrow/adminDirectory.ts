@@ -11,6 +11,16 @@ export const ADMIN_DIRECTORY: AdminDirectoryEntry[] = [
     id: 'cicr-admin',
     name: process.env.DEFAULT_ADMIN_NAME || 'CICR Lab Admin',
     email: process.env.DEFAULT_SENDER_EMAIL || process.env.SMTP_USER || MASTER_ADMIN_EMAIL
+  },
+  {
+    id: 'master-vardaan',
+    name: 'Vardaan Saxena',
+    email: 'vardaansaxena096@gmail.com'
+  },
+  {
+    id: 'admin-vardaan-jiit',
+    name: 'Vardaan Saxena',
+    email: '992501030399@mail.jiit.ac.in'
   }
 ];
 

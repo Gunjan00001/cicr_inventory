@@ -263,13 +263,21 @@ test('POST /api/borrow without token returns 401', async () => {
 });
 
 test('POST /api/borrow missing fields returns 400', async () => {
-  const { status } = await api('/api/borrow', { method: 'POST', token: memberToken, body: { inventory_id: itemId } });
+  const { status } = await api('/api/borrow', { method: 'POST', token: adminToken, body: { inventory_id: itemId } });
   assert.equal(status, 400);
+});
+
+test('POST /api/borrow with member token returns 403 (direct borrow requires admin)', async () => {
+  const { status } = await api('/api/borrow', {
+    method: 'POST', token: memberToken,
+    body: { inventory_id: itemId, quantity: 1, purpose: 'member direct borrow blocked' }
+  });
+  assert.equal(status, 403);
 });
 
 test('POST /api/borrow non-existent item returns 404', async () => {
   const { status } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: '00000000-0000-4000-8000-000000000000', quantity: 1, purpose: 'x' }
   });
   assert.equal(status, 404);
@@ -277,7 +285,7 @@ test('POST /api/borrow non-existent item returns 404', async () => {
 
 test('POST /api/borrow quantity exceeding stock returns 400', async () => {
   const { status, json } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: itemId, quantity: 999, purpose: 'too much' }
   });
   assert.equal(status, 400);
@@ -286,7 +294,7 @@ test('POST /api/borrow quantity exceeding stock returns 400', async () => {
 
 test('POST /api/borrow happy path returns 201, computes due_date, decrements stock', async () => {
   const { status, json } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: itemId, quantity: 2, purpose: 'integration test borrow', duration_days: 5 }
   });
   assert.equal(status, 201);
@@ -305,7 +313,7 @@ test('POST /api/borrow happy path returns 201, computes due_date, decrements sto
 
 test('POST /api/borrow defaults duration_days to 5', async () => {
   const { status, json } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: itemId, quantity: 1, purpose: 'default duration test' }
   });
   assert.equal(status, 201);
@@ -317,7 +325,7 @@ test('POST /api/borrow defaults duration_days to 5', async () => {
 
 test('POST /api/borrow quantity <= 0 returns 400', async () => {
   const { status } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: itemId, quantity: 0, purpose: 'zero' }
   });
   assert.equal(status, 400);
@@ -359,7 +367,7 @@ test('POST /api/borrow/return non-existent id returns 404', async () => {
 // ---------- Rental duration cap (1–30 days) ----------
 test('POST /api/borrow rejects duration_days above 30 (rental cap)', async () => {
   const { status, json } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: itemId, quantity: 1, purpose: 'cap test', duration_days: 31 }
   });
   assert.equal(status, 400);
@@ -368,7 +376,7 @@ test('POST /api/borrow rejects duration_days above 30 (rental cap)', async () =>
 
 test('POST /api/borrow rejects duration_days below 1', async () => {
   const { status } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: itemId, quantity: 1, purpose: 'cap test', duration_days: 0 }
   });
   assert.equal(status, 400);
@@ -376,7 +384,7 @@ test('POST /api/borrow rejects duration_days below 1', async () => {
 
 test('POST /api/borrow accepts duration_days = 1 (minimum)', async () => {
   const { status, json } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: itemId, quantity: 1, purpose: 'min cap test', duration_days: 1 }
   });
   assert.equal(status, 201);
@@ -388,7 +396,7 @@ test('POST /api/borrow accepts duration_days = 1 (minimum)', async () => {
 
 test('POST /api/borrow accepts duration_days = 30 (maximum)', async () => {
   const { status, json } = await api('/api/borrow', {
-    method: 'POST', token: memberToken,
+    method: 'POST', token: adminToken,
     body: { inventory_id: itemId, quantity: 1, purpose: 'max cap test', duration_days: 30 }
   });
   assert.equal(status, 201);
