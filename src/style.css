@@ -23290,7 +23290,7 @@ html[data-theme="light"] .nav-theme-box,
 body.theme-light .nav-theme-box {
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.88) 0%, rgba(244, 236, 254, 0.92) 100%) !important;
     border: 1px solid rgba(130, 90, 210, 0.22) !important;
-    border-radius: 12px !important;
+    border-radius: 9999px !important;
 }
 
 html[data-theme="light"] .nav-theme-icon,
@@ -23414,7 +23414,7 @@ html[data-theme="light"] .header-theme-box,
 body.theme-light .header-theme-box {
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.88) 0%, rgba(244, 236, 254, 0.92) 100%) !important;
     border: 1px solid rgba(130, 90, 210, 0.22) !important;
-    border-radius: 12px !important;
+    border-radius: 9999px !important;
     box-shadow: 0 2px 8px rgba(100, 70, 160, 0.05) !important;
 }
 
@@ -24775,7 +24775,7 @@ html[data-theme="light"] input[type="password"],
 html[data-theme="light"] input[type="number"],
 html[data-theme="light"] input[type="search"],
 html[data-theme="light"] textarea,
-html[data-theme="light"] select,
+html[data-theme="light"] select:not(#header-theme-select):not(#nav-theme-select),
 html[data-theme="light"] .vault-dropdown,
 body.theme-light input[type="text"],
 body.theme-light input[type="email"],
@@ -24783,7 +24783,7 @@ body.theme-light input[type="password"],
 body.theme-light input[type="number"],
 body.theme-light input[type="search"],
 body.theme-light textarea,
-body.theme-light select,
+body.theme-light select:not(#header-theme-select):not(#nav-theme-select),
 body.theme-light .vault-dropdown {
     background: rgba(244, 236, 254, 0.88) !important;
     border: 1px solid rgba(130, 90, 210, 0.22) !important;
@@ -24794,10 +24794,10 @@ body.theme-light .vault-dropdown {
 
 html[data-theme="light"] input:focus,
 html[data-theme="light"] textarea:focus,
-html[data-theme="light"] select:focus,
+html[data-theme="light"] select:not(#header-theme-select):not(#nav-theme-select):focus,
 body.theme-light input:focus,
 body.theme-light textarea:focus,
-body.theme-light select:focus {
+body.theme-light select:not(#header-theme-select):not(#nav-theme-select):focus {
     border-color: #9C78ED !important;
     box-shadow: 0 0 0 3px rgba(156, 120, 237, 0.18) !important;
     outline: none !important;
@@ -27750,14 +27750,14 @@ html[data-theme="mono"] input[type="password"],
 html[data-theme="mono"] input[type="number"],
 html[data-theme="mono"] input[type="search"],
 html[data-theme="mono"] textarea,
-html[data-theme="mono"] select,
+html[data-theme="mono"] select:not(#header-theme-select):not(#nav-theme-select),
 body.theme-mono input[type="text"],
 body.theme-mono input[type="email"],
 body.theme-mono input[type="password"],
 body.theme-mono input[type="number"],
 body.theme-mono input[type="search"],
 body.theme-mono textarea,
-body.theme-mono select {
+body.theme-mono select:not(#header-theme-select):not(#nav-theme-select) {
     background: #161615 !important;
     border: 1px solid #292825 !important;
     color: #F2F0E9 !important;
@@ -27768,10 +27768,10 @@ body.theme-mono select {
 
 html[data-theme="mono"] input:focus,
 html[data-theme="mono"] textarea:focus,
-html[data-theme="mono"] select:focus,
+html[data-theme="mono"] select:not(#header-theme-select):not(#nav-theme-select):focus,
 body.theme-mono input:focus,
 body.theme-mono textarea:focus,
-body.theme-mono select:focus {
+body.theme-mono select:not(#header-theme-select):not(#nav-theme-select):focus {
     border-color: #716B5E !important;
     box-shadow: inset 0 1px 0 rgba(200, 191, 168, 0.05), 0 0 0 1px #716B5E !important;
     outline: none !important;
@@ -31801,10 +31801,11 @@ html[data-theme="decent"] #header-theme-select,
 body.theme-decent #header-theme-select,
 html[data-theme="decent"] #nav-theme-select,
 body.theme-decent #nav-theme-select {
-    background: #0c121d !important;
-    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     color: #f8fafc !important;
-    border-radius: 8px !important;
+    border-radius: 0 !important;
 }
 
 html[data-theme="decent"] #header-theme-select option,
@@ -31963,8 +31964,8 @@ body.theme-decent .auth-card .btn-primary:hover {
 /* Input Fields in Cyber Decent */
 html[data-theme="decent"] input,
 body.theme-decent input,
-html[data-theme="decent"] select,
-body.theme-decent select,
+html[data-theme="decent"] select:not(#header-theme-select):not(#nav-theme-select),
+body.theme-decent select:not(#header-theme-select):not(#nav-theme-select),
 html[data-theme="decent"] textarea,
 body.theme-decent textarea {
     background: #080c14 !important;
@@ -31974,8 +31975,8 @@ body.theme-decent textarea {
 
 html[data-theme="decent"] input:focus,
 body.theme-decent input:focus,
-html[data-theme="decent"] select:focus,
-body.theme-decent select:focus,
+html[data-theme="decent"] select:not(#header-theme-select):not(#nav-theme-select):focus,
+body.theme-decent select:not(#header-theme-select):not(#nav-theme-select):focus,
 html[data-theme="decent"] textarea:focus,
 body.theme-decent textarea:focus {
     border-color: #00f0ff !important;
@@ -32055,7 +32056,7 @@ html.is-resizing *::after {
     input[type="password"],
     input[type="number"],
     input[type="search"],
-    select,
+    select:not(#header-theme-select):not(#nav-theme-select),
     textarea,
     .auth-card .form-group input,
     .auth-card input {
@@ -32099,3 +32100,98 @@ html.is-resizing *::after {
         -webkit-tap-highlight-color: transparent !important;
     }
 }
+
+/* ==========================================================================
+   PERFECT THEME SELECTOR PILL (ZERO OVERLAP, ZERO EXTRA BORDERS)
+   ========================================================================== */
+.header-theme-box,
+.nav-theme-box,
+html[data-theme="light"] .header-theme-box,
+body.theme-light .header-theme-box,
+html[data-theme="mono"] .header-theme-box,
+body.theme-mono .header-theme-box,
+html[data-theme="decent"] .header-theme-box,
+body.theme-decent .header-theme-box {
+    display: inline-flex !important;
+    align-items: center !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    border-radius: 9999px !important;
+    padding: 0 10px 0 12px !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.header-theme-box .header-theme-icon,
+.nav-theme-box .nav-theme-icon,
+html[data-theme="light"] .header-theme-icon,
+body.theme-light .header-theme-icon,
+html[data-theme="mono"] .header-theme-icon,
+body.theme-mono .header-theme-icon,
+html[data-theme="decent"] .header-theme-icon,
+body.theme-decent .header-theme-icon {
+    width: 15px !important;
+    height: 15px !important;
+    min-width: 15px !important;
+    max-width: 15px !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
+
+.header-theme-box select,
+.nav-theme-box select,
+#header-theme-select,
+#nav-theme-select,
+html[data-theme="light"] #header-theme-select,
+body.theme-light #header-theme-select,
+html[data-theme="light"] #nav-theme-select,
+body.theme-light #nav-theme-select,
+html[data-theme="mono"] #header-theme-select,
+body.theme-mono #header-theme-select,
+html[data-theme="mono"] #nav-theme-select,
+body.theme-mono #nav-theme-select,
+html[data-theme="decent"] #header-theme-select,
+body.theme-decent #header-theme-select,
+html[data-theme="decent"] #nav-theme-select,
+body.theme-decent #nav-theme-select {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 2px !important;
+    margin: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 38px !important;
+    line-height: 38px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2px !important;
+    cursor: pointer !important;
+    vertical-align: middle !important;
+    font-family: inherit !important;
+    -webkit-appearance: menulist !important;
+    appearance: menulist !important;
+}
+
+.header-theme-box select:focus,
+.nav-theme-box select:focus,
+#header-theme-select:focus,
+#nav-theme-select:focus,
+html[data-theme="light"] #header-theme-select:focus,
+body.theme-light #header-theme-select:focus,
+html[data-theme="mono"] #header-theme-select:focus,
+body.theme-mono #header-theme-select:focus,
+html[data-theme="decent"] #header-theme-select:focus,
+body.theme-decent #header-theme-select:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
