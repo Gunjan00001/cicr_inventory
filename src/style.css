@@ -22899,7 +22899,8 @@ body.theme-light .robolab-bg-robot {
     background-size: contain !important;
     opacity: 0.76 !important;
     pointer-events: none !important;
-    animation: robolabRobotFloat 45s ease-in-out infinite alternate !important;
+    animation: none !important;
+    transform: translateZ(0) !important;
     -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.2) 90%, rgba(0,0,0,0) 100%) !important;
     mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.2) 90%, rgba(0,0,0,0) 100%) !important;
 }
@@ -22930,7 +22931,8 @@ body.theme-light .robolab-bg-drone {
     background-size: contain !important;
     opacity: 0.74 !important;
     pointer-events: none !important;
-    animation: robolabDroneBob 14s ease-in-out infinite alternate !important;
+    animation: none !important;
+    transform: translateZ(0) !important;
 }
 
 @keyframes robolabDroneBob {
@@ -24769,19 +24771,19 @@ body.theme-light .close-modal:hover {
    17. FORM CONTROLS, INPUTS & SELECT DROPDOWNS
    ======================================================== */
 
-html[data-theme="light"] input[type="text"],
+html[data-theme="light"] input[type="text"]:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search),
 html[data-theme="light"] input[type="email"],
 html[data-theme="light"] input[type="password"],
 html[data-theme="light"] input[type="number"],
-html[data-theme="light"] input[type="search"],
+html[data-theme="light"] input[type="search"]:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search),
 html[data-theme="light"] textarea,
 html[data-theme="light"] select:not(#header-theme-select):not(#nav-theme-select),
 html[data-theme="light"] .vault-dropdown,
-body.theme-light input[type="text"],
+body.theme-light input[type="text"]:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search),
 body.theme-light input[type="email"],
 body.theme-light input[type="password"],
 body.theme-light input[type="number"],
-body.theme-light input[type="search"],
+body.theme-light input[type="search"]:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search),
 body.theme-light textarea,
 body.theme-light select:not(#header-theme-select):not(#nav-theme-select),
 body.theme-light .vault-dropdown {
@@ -24792,10 +24794,10 @@ body.theme-light .vault-dropdown {
     transition: all 0.18s ease !important;
 }
 
-html[data-theme="light"] input:focus,
+html[data-theme="light"] input:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search):focus,
 html[data-theme="light"] textarea:focus,
 html[data-theme="light"] select:not(#header-theme-select):not(#nav-theme-select):focus,
-body.theme-light input:focus,
+body.theme-light input:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search):focus,
 body.theme-light textarea:focus,
 body.theme-light select:not(#header-theme-select):not(#nav-theme-select):focus {
     border-color: #9C78ED !important;
@@ -27747,15 +27749,18 @@ body.theme-mono .audit-stat-pill-num {
 html[data-theme="mono"] input[type="text"],
 html[data-theme="mono"] input[type="email"],
 html[data-theme="mono"] input[type="password"],
+html[data-theme="mono"] input[type="text"]:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search),
+html[data-theme="mono"] input[type="email"],
+html[data-theme="mono"] input[type="password"],
 html[data-theme="mono"] input[type="number"],
-html[data-theme="mono"] input[type="search"],
+html[data-theme="mono"] input[type="search"]:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search),
 html[data-theme="mono"] textarea,
 html[data-theme="mono"] select:not(#header-theme-select):not(#nav-theme-select),
-body.theme-mono input[type="text"],
+body.theme-mono input[type="text"]:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search),
 body.theme-mono input[type="email"],
 body.theme-mono input[type="password"],
 body.theme-mono input[type="number"],
-body.theme-mono input[type="search"],
+body.theme-mono input[type="search"]:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search),
 body.theme-mono textarea,
 body.theme-mono select:not(#header-theme-select):not(#nav-theme-select) {
     background: #161615 !important;
@@ -27766,10 +27771,10 @@ body.theme-mono select:not(#header-theme-select):not(#nav-theme-select) {
     transition: all 0.2s ease !important;
 }
 
-html[data-theme="mono"] input:focus,
+html[data-theme="mono"] input:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search):focus,
 html[data-theme="mono"] textarea:focus,
 html[data-theme="mono"] select:not(#header-theme-select):not(#nav-theme-select):focus,
-body.theme-mono input:focus,
+body.theme-mono input:not(#search-input):not(#admin-users-search):not(#admin-audit-search):not(#hw-ledger-search):focus,
 body.theme-mono textarea:focus,
 body.theme-mono select:not(#header-theme-select):not(#nav-theme-select):focus {
     border-color: #716B5E !important;
@@ -32194,4 +32199,182 @@ body.theme-decent #header-theme-select:focus {
     border: none !important;
     box-shadow: none !important;
 }
+
+/* ==========================================================================
+   SEAMLESS SEARCH INPUTS (ZERO INNER BOXES / ZERO OVERLAP)
+   ========================================================================== */
+.hw-ledger-search-box input,
+.admin-audit-search-wrap input,
+.admin-search-wrapper input,
+.search-input-wrapper input,
+.search-box input,
+#hw-ledger-search,
+#admin-audit-search,
+#admin-users-search,
+#search-input {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+    line-height: normal !important;
+}
+
+.hw-ledger-search-box input:focus,
+.admin-audit-search-wrap input:focus,
+.admin-search-wrapper input:focus,
+.search-input-wrapper input:focus,
+.search-box input:focus,
+#hw-ledger-search:focus,
+#admin-audit-search:focus,
+#admin-users-search:focus,
+#search-input:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+html[data-theme="light"] .hw-ledger-search-box input,
+body.theme-light .hw-ledger-search-box input,
+html[data-theme="light"] .admin-audit-search-wrap input,
+body.theme-light .admin-audit-search-wrap input,
+html[data-theme="light"] .admin-search-wrapper input,
+body.theme-light .admin-search-wrapper input,
+html[data-theme="light"] #hw-ledger-search,
+body.theme-light #hw-ledger-search,
+html[data-theme="light"] #admin-audit-search,
+body.theme-light #admin-audit-search,
+html[data-theme="light"] #admin-users-search,
+body.theme-light #admin-users-search,
+html[data-theme="light"] #search-input,
+body.theme-light #search-input {
+    color: #17152B !important;
+}
+
+html[data-theme="light"] .hw-ledger-search-box input::placeholder,
+body.theme-light .hw-ledger-search-box input::placeholder,
+html[data-theme="light"] .admin-audit-search-wrap input::placeholder,
+body.theme-light .admin-audit-search-wrap input::placeholder,
+html[data-theme="light"] #hw-ledger-search::placeholder,
+body.theme-light #hw-ledger-search::placeholder,
+html[data-theme="light"] #admin-audit-search::placeholder,
+body.theme-light #admin-audit-search::placeholder,
+html[data-theme="light"] #search-input::placeholder,
+body.theme-light #search-input::placeholder {
+    color: #827A9C !important;
+}
+
+/* ==========================================================================
+   7-DAY AUDIT & TELEMETRY LEDGER — HIGH CONTRAST & ZERO-NEON POLISH
+   ========================================================================== */
+html[data-theme="light"] .audit-hud-title-row h3,
+body.theme-light .audit-hud-title-row h3 {
+    color: #17152B !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2px !important;
+}
+
+html[data-theme="light"] .audit-hud-subtitle,
+body.theme-light .audit-hud-subtitle {
+    color: #524B66 !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+}
+
+html[data-theme="light"] .audit-stat-pill,
+body.theme-light .audit-stat-pill {
+    background: rgba(128, 88, 215, 0.08) !important;
+    border: 1px solid rgba(128, 88, 215, 0.22) !important;
+    padding: 3px 9px !important;
+    border-radius: 8px !important;
+}
+
+html[data-theme="light"] .audit-stat-pill-num,
+body.theme-light .audit-stat-pill-num {
+    color: #6B46C1 !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+}
+
+html[data-theme="light"] .audit-stat-pill-lbl,
+body.theme-light .audit-stat-pill-lbl {
+    color: #524B66 !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+}
+
+html[data-theme="light"] .audit-hud-icon-box,
+body.theme-light .audit-hud-icon-box {
+    background: rgba(128, 88, 215, 0.1) !important;
+    border: 1px solid rgba(128, 88, 215, 0.25) !important;
+}
+
+html[data-theme="light"] .audit-hud-icon-box i,
+body.theme-light .audit-hud-icon-box svg {
+    color: #8058D7 !important;
+}
+
+html[data-theme="light"] .audit-radar-beacon,
+body.theme-light .audit-radar-beacon {
+    display: none !important;
+}
+
+html[data-theme="light"] .audit-live-beacon-tag,
+body.theme-light .audit-live-beacon-tag {
+    background: rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+    color: #059669 !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    border-radius: 9999px !important;
+    padding: 2px 7px !important;
+}
+
+html[data-theme="light"] .pulse-beacon-dot,
+body.theme-light .pulse-beacon-dot {
+    background: #10B981 !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
+html[data-theme="light"] .admin-audit-hud-right .btn-sm,
+body.theme-light .admin-audit-hud-right .btn-sm {
+    height: 32px !important;
+    font-size: 11px !important;
+    padding: 0 10px !important;
+    gap: 5px !important;
+    border-radius: 8px !important;
+}
+
+/* ==========================================================================
+   SIDEBAR SPACING: REMOVE EXTRA SPACE BETWEEN REVIEW REQUEST & CORE WORKSPACE
+   ========================================================================== */
+.sidebar-action-btn.notif-sidebar-btn {
+    margin-bottom: 2px !important;
+}
+
+#sidebar-section-core {
+    margin-top: 4px !important;
+}
+
+/* ==========================================================================
+   GLOBAL ZERO-OVERFLOW & SMOOTH HARDWARE RENDERING
+   ========================================================================== */
+html,
+body,
+.app-container,
+.main-viewport,
+.main-content,
+.developers-section,
+.team-showcase-container {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+
 

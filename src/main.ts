@@ -420,6 +420,8 @@ class Background3D {
         this.startEngine();
     }
 
+    private rafId: number | null = null;
+
     private startEngine() {
         if (this.isInitialized) return;
         this.isInitialized = true;
@@ -427,7 +429,24 @@ class Background3D {
         this.createLighting();
         this.createParticles();
         this.setupEvents();
-        this.animate();
+        if (this.currentTheme === 'decent') {
+            this.start();
+        }
+    }
+
+    public start() {
+        if (this.currentTheme !== 'decent') return;
+        if (window.innerWidth < 768 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) return;
+        if (this.rafId === null) {
+            this.animate();
+        }
+    }
+
+    public stop() {
+        if (this.rafId !== null) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
+        }
     }
 
     private init() {
@@ -464,7 +483,12 @@ class Background3D {
 
     public updateThemeColors(theme: string) {
         this.currentTheme = theme;
-        this.setParticleColorsForTheme(theme);
+        if (theme === 'decent') {
+            this.setParticleColorsForTheme(theme);
+            this.start();
+        } else {
+            this.stop();
+        }
     }
 
     private setParticleColorsForTheme(theme: string) {
@@ -548,26 +572,38 @@ class Background3D {
     }
 
     private animate() {
-        requestAnimationFrame(() => this.animate());
-        if (typeof document !== 'undefined' && document.hidden) return;
-
-        // Mobile & touch device acceleration: bypass Three.js render loop to eliminate lag and save battery
-        if (window.innerWidth < 768 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) {
+        if (this.currentTheme !== 'decent') {
+            this.stop();
+            return;
+        }
+        if (typeof document !== 'undefined' && document.hidden) {
+            this.rafId = requestAnimationFrame(() => this.animate());
             return;
         }
 
-        // In Midnight Mono & Robosoccer Light themes, canvas-3d is hidden. Skip rendering completely to eliminate GPU/CPU overhead!
-        if (this.currentTheme === 'mono' || this.currentTheme === 'light') return;
-        if (this.canvas && this.canvas.offsetParent === null && window.getComputedStyle(this.canvas).display === 'none') return;
+        // Mobile & touch device acceleration: bypass Three.js render loop to eliminate lag and save battery
+        if (window.innerWidth < 768 || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) {
+            this.stop();
+            return;
+        }
+
+        if (this.canvas && this.canvas.offsetParent === null && window.getComputedStyle(this.canvas).display === 'none') {
+            this.rafId = requestAnimationFrame(() => this.animate());
+            return;
+        }
 
         const isScrolling = !!(window as any).isUserScrolling;
         if (isScrolling) {
+            this.rafId = requestAnimationFrame(() => this.animate());
             return;
         }
 
         const now = performance.now();
         const delta = now - this.lastFrameTime;
-        if (delta < this.frameInterval) return;
+        if (delta < this.frameInterval) {
+            this.rafId = requestAnimationFrame(() => this.animate());
+            return;
+        }
         this.lastFrameTime = now - (delta % this.frameInterval);
 
         if (this.particles) {
@@ -598,6 +634,7 @@ class Background3D {
         this.camera.lookAt(0, -1, -5);
 
         this.renderer.render(this.scene, this.camera);
+        this.rafId = requestAnimationFrame(() => this.animate());
     }
 }
 
@@ -1419,8 +1456,11 @@ class DashboardManager {
                 window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                 document.documentElement.scrollTop = 0;
                 document.body.scrollTop = 0;
-                const mainViewport = document.querySelector('.main-viewport-wrapper');
-                if (mainViewport) (mainViewport as HTMLElement).scrollTop = 0;
+                const mainViewport = document.querySelector('.main-viewport-wrapper') || document.querySelector('.main-viewport') || document.querySelector('.main-content');
+                if (mainViewport) {
+                    (mainViewport as HTMLElement).scrollTop = 0;
+                    (mainViewport as HTMLElement).scrollLeft = 0;
+                }
             } catch (_) {}
 
             // Toggle body classes for current view
@@ -8870,9 +8910,11 @@ class TeamShowcaseManager {
         items.forEach((item, idx) => {
             const isActive = idx === this.activeIndex;
             item.classList.toggle('active', isActive);
-            if (isActive) {
+            if (isActive && track) {
                 try {
-                    item.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    const el = item as HTMLElement;
+                    const targetLeft = el.offsetLeft - (track.clientWidth - el.clientWidth) / 2;
+                    track.scrollTo({ left: targetLeft, behavior: 'smooth' });
                 } catch (_) {}
             }
         });
