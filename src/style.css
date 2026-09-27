@@ -535,51 +535,9 @@ html:not(.is-authenticated) #auth-overlay:not(.hidden) ~ #app-container .app-sid
     pointer-events: none !important;
 }
 
-/* Auth Theme Toggle Button */
+/* Auth Theme Toggle Button (Permanently hidden per design request) */
 .auth-theme-toggle {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 10;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.05);
-    color: inherit;
-}
-
-html[data-theme="mono"] .auth-theme-toggle,
-body.theme-mono .auth-theme-toggle {
-    background: #1C1B19 !important;
-    border: 1px solid #302F2B !important;
-    color: #AAA79F !important;
-}
-
-html[data-theme="mono"] .auth-theme-toggle:hover,
-body.theme-mono .auth-theme-toggle:hover {
-    background: #262522 !important;
-    color: #F2F0E9 !important;
-    border-color: #756E60 !important;
-}
-
-html[data-theme="light"] .auth-theme-toggle,
-body.theme-light .auth-theme-toggle {
-    background: rgba(156, 120, 237, 0.12) !important;
-    border: 1px solid rgba(156, 120, 237, 0.3) !important;
-    color: #553399 !important;
-}
-
-html[data-theme="light"] .auth-theme-toggle:hover,
-body.theme-light .auth-theme-toggle:hover {
-    background: rgba(156, 120, 237, 0.22) !important;
-    color: #2F1766 !important;
+    display: none !important;
 }
 
 .auth-card {
@@ -31994,28 +31952,25 @@ body.theme-decent input::placeholder {
 }
 
 /* ========================================================
-   ZERO-JITTER BROWSER ZOOM & RESIZE STABILIZER (DESKTOP & LAPTOP)
+   MOBILE FLUIDITY & ZERO-FLICKER ACCELERATION (<= 900px)
    ======================================================== */
-html.is-resizing *,
-html.is-resizing *::before,
-html.is-resizing *::after {
-    transition: none !important;
-    animation-play-state: paused !important;
-}
-
-/* ========================================================
-   MOBILE FLUIDITY & ZERO-LAG PERFORMANCE ACCELERATION (<= 900px)
-   ======================================================== */
-@media (max-width: 900px), (pointer: coarse) {
-    /* Bypass all expensive multi-layer GPU blur filters on mobile to guarantee silky 60-120fps */
-    *,
-    *::before,
-    *::after {
+@media (max-width: 900px) {
+    /* Bypass expensive multi-layer GPU blur filters on specific mobile surfaces to guarantee 60-120fps without wildcard thrash */
+    .glass,
+    .modal-content,
+    .admin-modal-content,
+    .dashboard-metric-tile,
+    .profile-loan-card,
+    .card,
+    .notif-dropdown,
+    .dash-card,
+    .inventory-card,
+    .auth-card {
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
     }
 
-    /* Provide crisp, high-performance solid pastel and mono surfaces on mobile */
+    /* Provide crisp solid pastel and mono surfaces on mobile */
     html[data-theme="light"] .dash-card,
     body.theme-light .dash-card,
     html[data-theme="light"] .inventory-card,
@@ -32038,33 +31993,21 @@ html.is-resizing *::after {
         background: #141413 !important;
     }
 
-    /* Hardware stability & smooth touch scrolling across all view containers without compositing thrash */
-    body,
-    html,
+    /* Hardware stability & smooth touch scrolling on content containers without root overscroll fights */
     .main-content,
     .sidebar-scroll-content,
     .dashboard-section,
     .inventory-section,
     .admin-table-responsive,
     .modal-body,
-    .notif-dropdown-body,
-    .auth-overlay {
+    .notif-dropdown-body {
         -webkit-overflow-scrolling: touch !important;
-        backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-        overscroll-behavior-y: contain;
     }
 
-    /* Prevent iOS Safari / Mobile WebKit viewport auto-zoom flickering when inputs are focused */
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="number"],
-    input[type="search"],
-    select:not(#header-theme-select):not(#nav-theme-select),
-    textarea,
-    .auth-card .form-group input,
-    .auth-card input {
+    /* Prevent iOS Safari / Mobile WebKit viewport auto-zoom flickering when form inputs are focused */
+    .form-group input,
+    .auth-card input,
+    .modal-body input {
         font-size: 16px !important;
         height: 44px !important;
         line-height: normal !important;
@@ -32081,9 +32024,9 @@ html.is-resizing *::after {
         display: none !important;
     }
 
-    /* Completely eliminate background SVG repaint thrash on mobile devices */
-    .robolab-viewport-bg * {
-        animation: none !important;
+    /* Completely eliminate fixed background redraw jitter on mobile touch scrolling */
+    .robolab-viewport-bg {
+        display: none !important;
     }
 
     .robolab-bg-robot,

@@ -11557,16 +11557,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('orientationchange', syncFixedSidebarPosition, { passive: true });
     syncFixedSidebarPosition();
 
-    // Browser Zoom & Viewport Resize Stabilizer (eliminates transition and layout stutter during zoom in/out)
-    let zoomResizeTimer: any = null;
-    window.addEventListener('resize', () => {
-        document.documentElement.classList.add('is-resizing');
-        clearTimeout(zoomResizeTimer);
-        zoomResizeTimer = setTimeout(() => {
-            document.documentElement.classList.remove('is-resizing');
-        }, 120);
-    }, { passive: true });
-
     // Cross-Tab Synchronization via Window Storage Event (Issue #48)
     window.addEventListener('storage', (e: StorageEvent) => {
         if (e.key === 'cicr_token') {
