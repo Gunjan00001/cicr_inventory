@@ -39,8 +39,77 @@
 
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png">
+
+    <!-- Autonomous Client Cache Freshness Directives (Ensures Instantaneous Updates Without Stale Caches) -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <!-- Strict Content Security Policy (Defense-in-Depth against XSS & Unauthorized Exfiltration) -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:* https://*.onrender.com https://*.supabase.co https://*.neon.tech; img-src 'self' data: blob: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+
+    <!-- Autonomous Silent Auto-Cache Sanitizer (Runs Silently on Every Visit Without Popups) -->
+    <script>
+        (function() {
+            try {
+                // 1. Silently clear CacheStorage API caches (Service Worker / PWA cache)
+                if (typeof window !== 'undefined' && 'caches' in window) {
+                    caches.keys().then(function(names) {
+                        for (var i = 0; i < names.length; i++) {
+                            caches.delete(names[i]);
+                        }
+                    }).catch(function() {});
+                }
+
+                // 2. Silently unregister stale service worker threads
+                if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for (var j = 0; j < registrations.length; j++) {
+                            registrations[j].unregister().catch(function() {});
+                        }
+                    }).catch(function() {});
+                }
+
+                // 3. Clear temporary sessionStorage to ensure ultra-fresh session state
+                try {
+                    sessionStorage.clear();
+                } catch(e) {}
+
+                // 4. Silently clear stale/temporary localStorage cache artifacts while safely preserving user credentials & settings
+                var PRESERVED_KEYS = {
+                    'cicr_token': true,
+                    'cicr_user': true,
+                    'cicr_role': true,
+                    'cicr_auth': true,
+                    'cicr_last_active': true,
+                    'cicr_theme': true,
+                    'cicr_vault_theme': true,
+                    'cicr_read_notifs': true,
+                    'cicr_cart_items': true,
+                    'cicr_user_avatar': true,
+                    'cicr_profile_override': true
+                };
+
+                var keysToRemove = [];
+                for (var k = 0; k < localStorage.length; k++) {
+                    var storageKey = localStorage.key(k);
+                    if (storageKey && storageKey.indexOf('cicr_') === 0 && !PRESERVED_KEYS[storageKey]) {
+                        if (
+                            storageKey.indexOf('cache') !== -1 ||
+                            storageKey.indexOf('temp') !== -1 ||
+                            storageKey === 'cicr_fresh_epoch' ||
+                            storageKey === 'cicr_dismissed_requests'
+                        ) {
+                            keysToRemove.push(storageKey);
+                        }
+                    }
+                }
+                for (var m = 0; m < keysToRemove.length; m++) {
+                    try { localStorage.removeItem(keysToRemove[m]); } catch(e) {}
+                }
+            } catch(e) {}
+        })();
+    </script>
 
     <!-- Google Fonts Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

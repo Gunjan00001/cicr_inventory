@@ -46,7 +46,19 @@ export const isDesignatedAdmin = (email: string, _name?: string): boolean => {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  if (blockedAdminEmails.some((b) => norm === b || norm.includes(b))) return false;
+
+  // Explicitly demote/block Mahak & Divyam from Admin privileges
+  if (
+    norm === 'mahakkatahara.mk@gmail.com' ||
+    norm === '992501030398@mail.jiit.ac.in' ||
+    norm === '992501210090@mail.jiit.ac.in' ||
+    norm.includes('mahak') ||
+    norm.includes('divyam') ||
+    blockedAdminEmails.some((b) => norm === b || norm.includes(b))
+  ) {
+    return false;
+  }
+
   // H-1 FIX: exact normalized email allow-list only. The display name,
   // roll number, or any email substring must NEVER grant ADMIN.
   // _name is accepted for backward compatibility and intentionally ignored.
@@ -309,7 +321,14 @@ export const setUserRole = (
   purgedEmails.delete(normEmail);
 
   const blockedAdminEmails = (process.env.BLOCKED_ADMIN_EMAILS || '').toLowerCase().split(',').map((s) => s.trim()).filter(Boolean);
-  if (blockedAdminEmails.includes(normEmail)) {
+  if (
+    blockedAdminEmails.includes(normEmail) ||
+    normEmail === 'mahakkatahara.mk@gmail.com' ||
+    normEmail === '992501030398@mail.jiit.ac.in' ||
+    normEmail === '992501210090@mail.jiit.ac.in' ||
+    normEmail.includes('mahak') ||
+    normEmail.includes('divyam')
+  ) {
     role = 'MEMBER';
   }
 

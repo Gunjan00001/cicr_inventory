@@ -35,8 +35,22 @@ export const isStudentEmail = (email: string): boolean => {
 };
 
 /**
+ * Exceptional non-college personal email accounts authorized for login and portal access
+ */
+export const EXCEPTIONAL_ALLOWED_EMAILS: string[] = [
+  'vardaansaxena096@gmail.com',
+  'cicrinventory@gmail.com'
+];
+
+export const isExceptionalAllowedEmail = (email: string): boolean => {
+  const norm = String(email ?? '').trim().toLowerCase();
+  return EXCEPTIONAL_ALLOWED_EMAILS.includes(norm);
+};
+
+/**
  * Validates whether an email is permitted to create an account or log into the portal.
  * Returns true ONLY for:
+ *   - Exceptional allowed personal email accounts (e.g. vardaansaxena096@gmail.com)
  *   - Accounts with JIIT domain (enrollmentnumber@mail.jiit.ac.in or @jiit.ac.in)
  *   - Current authorized administrator emails
  */
@@ -45,7 +59,7 @@ export const isAllowedAuthEmail = (email: string): boolean => {
   if (process.env.NODE_ENV === 'test' && (norm.endsWith('@cicr.test') || norm.endsWith('.test'))) {
     return true;
   }
-  return isCurrentAdminEmail(norm) || isJiitEmail(norm);
+  return isExceptionalAllowedEmail(norm) || isCurrentAdminEmail(norm) || isJiitEmail(norm);
 };
 
 export const isValidEmail = (email: string): boolean => {
