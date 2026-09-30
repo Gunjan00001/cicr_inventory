@@ -1315,7 +1315,7 @@ class DashboardManager {
             let hours = now.getHours();
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'pm' : 'am';
+            const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
             hours = hours ? hours : 12; // the hour '0' should be '12'
             const formattedHours = String(hours).padStart(2, '0');
@@ -1474,7 +1474,7 @@ class DashboardManager {
             // Top navbar cart button is visible STRICTLY on the inventory page
             const headerCartWrapper = document.querySelector('.header-cart-wrapper') as HTMLElement | null;
             if (headerCartWrapper) {
-                headerCartWrapper.style.display = (targetId === 'inventory-view') ? 'inline-flex' : 'none';
+                headerCartWrapper.style.setProperty('display', (targetId === 'inventory-view') ? 'inline-flex' : 'none', 'important');
             }
 
             // Sync floating cart capsule FAB (strictly on inventory page)
@@ -2536,8 +2536,8 @@ class CartManager {
         if (floatingBadge) floatingBadge.innerText = String(count);
         if (floatingPing) floatingPing.style.display = count > 0 ? 'block' : 'none';
         if (floatingFab) {
-            const isInventory = document.body.classList.contains('view-inventory-view') || (document.getElementById('inventory-view')?.style.display !== 'none');
-            floatingFab.style.display = (isInventory || count > 0) ? 'block' : 'none';
+            const isInventory = document.body.classList.contains('view-inventory-view') && (document.getElementById('inventory-view')?.style.display !== 'none');
+            floatingFab.style.setProperty('display', isInventory ? 'block' : 'none', 'important');
         }
 
         // Capsule Nav Cart Badge (if on capsule view)

@@ -32389,8 +32389,7 @@ body.theme-light .header-right {
 }
 
 /* 4. Compact Control Dimensions (34px Height & Sleek Pill Shape) */
-.header-notif-wrapper,
-.header-cart-wrapper {
+.header-notif-wrapper {
     position: relative !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -32400,6 +32399,23 @@ body.theme-light .header-right {
     flex-shrink: 0 !important;
     z-index: 100001 !important;
     margin: 0 !important;
+}
+
+.header-cart-wrapper {
+    position: relative !important;
+    display: none !important;
+    align-items: center !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    flex-shrink: 0 !important;
+    z-index: 100001 !important;
+    margin: 0 !important;
+}
+
+body.view-inventory-view .header-cart-wrapper,
+html[data-current-view="inventory-view"] .header-cart-wrapper {
+    display: inline-flex !important;
 }
 
 .header-notif-btn,
@@ -33018,7 +33034,7 @@ body.theme-light .header-theme-box select option {
 
 /* 1. Universal Spacing and Typography Design Tokens */
 :root {
-    --ui-header-content-gap: 8px;
+    --ui-header-content-gap: 16px;
     --ui-page-padding: 20px 28px 40px 28px;
     --ui-section-gap: 20px;
     --ui-card-gap: 18px;
@@ -33031,7 +33047,7 @@ body.theme-light .header-theme-box select option {
 
 @media (min-width: 1400px) {
     :root {
-        --ui-header-content-gap: 8px;
+        --ui-header-content-gap: 18px;
         --ui-page-padding: 24px 36px 44px 36px;
     }
 }
@@ -33076,7 +33092,7 @@ body.theme-light .viewport-header {
     html[data-theme="light"] .app-container,
     body.theme-light .app-container {
         display: grid !important;
-        grid-template-columns: 260px minmax(0, 1fr) !important;
+        grid-template-columns: 268px minmax(0, 1fr) !important;
         gap: 20px !important;
         width: 100% !important;
         max-width: none !important;
@@ -33936,6 +33952,145 @@ textarea {
         padding: 18px 20px !important;
         min-height: 145px !important;
     }
+}
+
+/* 8. Small Screen & Mobile Device Polish (<= 640px) */
+@media (max-width: 640px) {
+    .dashboard-greeting-card,
+    html[data-theme="mono"] .dashboard-greeting-card,
+    body.theme-mono .dashboard-greeting-card,
+    html[data-theme="decent"] .dashboard-greeting-card,
+    body.theme-decent .dashboard-greeting-card,
+    html[data-theme="light"] .dashboard-greeting-card,
+    body.theme-light .dashboard-greeting-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        padding: 16px 18px !important;
+    }
+
+    .card-greetings-left,
+    html[data-theme="mono"] .card-greetings-left,
+    body.theme-mono .card-greetings-left,
+    html[data-theme="decent"] .card-greetings-left,
+    body.theme-decent .card-greetings-left,
+    html[data-theme="light"] .card-greetings-left,
+    body.theme-light .card-greetings-left {
+        width: 100% !important;
+    }
+
+    .dashboard-greeting-title,
+    html[data-theme="mono"] .dashboard-greeting-title,
+    body.theme-mono .dashboard-greeting-title,
+    html[data-theme="decent"] .dashboard-greeting-title,
+    body.theme-decent .dashboard-greeting-title,
+    html[data-theme="light"] .dashboard-greeting-title,
+    body.theme-light .dashboard-greeting-title {
+        font-size: 20px !important;
+    }
+
+    .card-clock-right,
+    html[data-theme="mono"] .card-clock-right,
+    body.theme-mono .card-clock-right,
+    html[data-theme="decent"] .card-clock-right,
+    body.theme-decent .card-clock-right,
+    html[data-theme="light"] .card-clock-right,
+    body.theme-light .card-clock-right {
+        width: 100% !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding-left: 0 !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding-top: 10px !important;
+    }
+
+    .clock-date {
+        font-size: 10.5px !important;
+    }
+
+    .clock-time {
+        font-size: 16px !important;
+    }
+
+    .dash-card,
+    html[data-theme="mono"] .dash-card,
+    body.theme-mono .dash-card,
+    html[data-theme="decent"] .dash-card,
+    body.theme-decent .dash-card,
+    html[data-theme="light"] .dash-card,
+    body.theme-light .dash-card {
+        padding: 16px 18px !important;
+        min-height: 135px !important;
+    }
+
+    .viewport-header {
+        padding: 6px 12px !important;
+    }
+
+    .breadcrumbs {
+        padding: 0 10px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        font-size: 11px !important;
+    }
+
+    .header-notif-text {
+        display: none !important;
+    }
+
+    .header-notif-btn {
+        padding: 0 8px !important;
+    }
+}
+
+/* 9. High-Performance GPU Interactions for Cards & Controls */
+.dash-card {
+    will-change: transform, box-shadow !important;
+    backface-visibility: hidden !important;
+    transform: translateZ(0) !important;
+}
+
+.dash-card:hover {
+    transform: translateY(-4px) translateZ(0) !important;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dash-card:hover .dash-card-footer i,
+.dash-card:hover .dash-card-footer svg {
+    transform: translateX(4px) !important;
+}
+
+.dash-card:active {
+    transform: translateY(-1px) scale(0.996) !important;
+}
+
+.header-notif-btn,
+.header-cart-btn,
+.header-theme-box {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background 0.2s ease !important;
+    transform: translateZ(0);
+}
+
+.header-notif-btn:hover,
+.header-cart-btn:hover,
+.header-theme-box:hover {
+    transform: translateY(-1px) !important;
+}
+
+.header-notif-btn:active,
+.header-cart-btn:active,
+.header-theme-box:active {
+    transform: translateY(0) scale(0.97) !important;
+}
+
+.breadcrumb-btn {
+    transition: all 0.18s ease !important;
+}
+
+.breadcrumb-btn:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    transform: translateY(-1px) !important;
 }
 
 /* ==========================================================================
