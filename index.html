@@ -530,7 +530,6 @@
         pointer-events: none !important;
       }
       html.is-authenticated #app-container {
-        display: grid !important;
         visibility: visible !important;
         opacity: 1 !important;
         pointer-events: auto !important;
@@ -545,6 +544,14 @@
       }
       html.is-authenticated body.auth-overlay-active {
         overflow-y: auto !important;
+      }
+      html.is-authenticated body {
+        overflow-y: visible !important;
+        overflow-x: clip !important;
+      }
+      html.is-authenticated {
+        overflow-y: auto !important;
+        overflow-x: clip !important;
       }
 
       /* Explicit unauthenticated state: show login screen, hide app */

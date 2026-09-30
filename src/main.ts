@@ -1292,7 +1292,7 @@ class DashboardManager {
     }
 
     public setMobileSidebar(open: boolean) {
-        const shouldOpen = open && window.innerWidth <= 1100;
+        const shouldOpen = open && window.innerWidth <= 900.98;
         this.mobileSidebarOpen = shouldOpen;
         this.appContainer.classList.toggle('sidebar-open', shouldOpen);
         this.mobileSidebarToggle?.setAttribute('aria-expanded', String(shouldOpen));
@@ -1384,10 +1384,10 @@ class DashboardManager {
         });
 
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 1100) {
+            if (window.innerWidth > 900) {
                 closeMobileSidebar();
             }
-        });
+        }, { passive: true });
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -5872,12 +5872,13 @@ class AuthManager {
         document.documentElement.classList.remove('is-unauthenticated');
         document.body.classList.remove('auth-overlay-active');
         document.body.classList.add('authenticated');
+        document.body.style.overflow = '';
 
         // Directly transition: hide auth form, show app container
         this.authOverlay.classList.add('hidden');
         this.authOverlay.style.setProperty('display', 'none', 'important');
         this.appContainer.classList.remove('hidden');
-        this.appContainer.style.setProperty('display', 'grid', 'important');
+        this.appContainer.style.removeProperty('display');
         this.globalNavbar.style.setProperty('display', 'none', 'important');
         (window as any).syncFixedSidebarPosition?.();
 

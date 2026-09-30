@@ -48,7 +48,24 @@
     box-sizing: border-box;
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
-    /* Eliminate reflow thrash: layout dimensions (width, height, font-size) do not animate during browser zoom */
+}
+
+/* Eliminate reflow thrash: scope transition properties specifically to interactive surfaces, never wildcard * */
+button,
+a,
+input,
+select,
+textarea,
+.btn,
+.nav-link,
+.sidebar-nav-link,
+.sidebar-item,
+.inventory-card,
+.dash-card,
+.modal-content,
+.toast,
+.tab-btn,
+[role="button"] {
     transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
 }
 
@@ -86,19 +103,26 @@ body {
     overflow-x: clip;
     max-width: 100vw;
     width: 100%;
-    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
 }
 
 html {
+    /* Stable scrollbar reservation prevents 17px viewport contraction & infinite 900px oscillation flicker */
+    scrollbar-gutter: stable;
+    overflow-x: clip !important;
+    overflow-y: auto !important;
     background-color: #06060e;
+    height: auto !important;
+    min-height: 100% !important;
 }
 
 body {
     background-color: transparent;
     color: var(--text-main);
-    overflow-x: clip;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
     min-height: 100vh;
+    height: auto !important;
     position: relative;
 }
 
@@ -432,7 +456,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 50000 !important;
+    z-index: 1500000 !important;
     padding: 20px 14px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -522,8 +546,7 @@ html:not(.is-authenticated) #app-container.hidden {
     pointer-events: none !important;
 }
 
-html:not(.is-authenticated) body.auth-overlay-active,
-html:not(.is-authenticated) body:has(#auth-overlay:not(.hidden)) {
+html:not(.is-authenticated) body.auth-overlay-active {
     overflow: hidden !important;
 }
 
@@ -838,7 +861,7 @@ body.theme-light .auth-card input:-webkit-autofill:active {
     }
 }
 
-@media (max-width: 519px) {
+@media (max-width: 519.98px) {
     .auth-card {
         padding: 22px 18px;
         border-radius: 14px;
@@ -1091,7 +1114,6 @@ body.theme-light .auth-card input::placeholder,
     background: radial-gradient(circle, rgba(0, 240, 255, 0.03) 0%, transparent 80%);
     pointer-events: none;
     z-index: -1;
-    filter: blur(50px);
 }
 
 /* Left Brand Area */
@@ -2290,50 +2312,66 @@ body.theme-light .auth-card input::placeholder,
 
 .vault-search-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    width: 100%;
 }
 
 .vault-search-input-wrap {
-    flex: 1 1 320px;
-    min-width: 240px;
+    width: 100%;
+    min-width: 0;
     position: relative;
     display: flex;
     align-items: center;
+    height: 44px;
+    min-height: 44px;
 }
 
 .vault-search-input-wrap .search-icon {
     position: absolute;
-    left: 14px;
-    width: 16px;
-    height: 16px;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
     color: #85817A;
     pointer-events: none;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.vault-search-input-wrap input {
-    width: 100%;
-    padding: 10px 38px 10px 38px;
+.vault-search-input-wrap input,
+#search-input {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 10px 42px 10px 46px !important;
     background: #10100F;
     border: 1px solid #262522;
-    border-radius: 10px;
+    border-radius: 12px !important;
     color: #F2F0E9;
-    font-size: 13.5px;
-    outline: none;
+    font-size: 13.5px !important;
+    line-height: normal !important;
+    outline: none !important;
+    box-sizing: border-box !important;
     transition: all 0.2s ease;
 }
 
-.vault-search-input-wrap input:focus {
-    border-color: #72C7D5;
-    box-shadow: 0 0 0 3px rgba(114, 199, 213, 0.15);
+.vault-search-input-wrap input:focus,
+#search-input:focus {
+    border-color: #72C7D5 !important;
+    box-shadow: 0 0 0 3px rgba(114, 199, 213, 0.15) !important;
     background: #141413;
 }
 
 .clear-search-btn {
     position: absolute;
-    right: 10px;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     background: transparent;
     border: none;
     color: #85817A;
@@ -2343,6 +2381,7 @@ body.theme-light .auth-card input::placeholder,
     align-items: center;
     justify-content: center;
     border-radius: 6px;
+    z-index: 2;
     transition: color 0.15s ease;
 }
 
@@ -4628,8 +4667,8 @@ body.theme-light input[type="date"],
     height: 100vh;
     background: rgba(3, 3, 8, 0.6);
     backdrop-filter: blur(12px);
-    z-index: 50000;
-    /* High z-index to always overlay navbar (20000), sidebar (100), and auth screens (1000) */
+    z-index: 1000000 !important;
+    /* High z-index to always overlay sticky header (99999), sidebar, and cards */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4835,7 +4874,7 @@ body.theme-light input[type="date"],
     background: rgba(3, 5, 12, 0.82) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
-    z-index: 999999 !important;
+    z-index: 1000000 !important;
     display: none;
     align-items: center !important;
     justify-content: center !important;
@@ -4863,7 +4902,7 @@ body.theme-light input[type="date"],
     border-radius: 20px !important;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.15) !important;
     padding: 30px 26px !important;
-    z-index: 1000000 !important;
+    z-index: 1000001 !important;
     transform: scale(0.96) translateY(10px);
     transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
 }
@@ -6478,7 +6517,7 @@ input:-webkit-autofill:active {
 /* ==========================================================
    Responsive Breakpoints Refitting
    ========================================================== */
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     .explorer-layout-container {
         flex-direction: column;
     }
@@ -6516,7 +6555,7 @@ input:-webkit-autofill:active {
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     .pinterest-hero {
         flex-direction: column;
         gap: 48px;
@@ -6888,7 +6927,7 @@ input:-webkit-autofill:active {
     background: rgba(255, 255, 255, 0.01);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     .welcome-screen {
         flex-direction: column;
         gap: 48px;
@@ -10381,7 +10420,7 @@ body.theme-light .header-notif-dropdown {
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+    gap: 20px;
     align-items: stretch;
 }
 
@@ -10389,8 +10428,8 @@ body.theme-light .header-notif-dropdown {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 200px;
-    padding: 18px 18px 16px;
+    min-height: 195px;
+    padding: 22px 24px 20px 24px;
     border-radius: 20px;
     background: var(--card-item-bg);
     border: 1px solid var(--border-glass);
@@ -10445,10 +10484,17 @@ body.theme-light .header-notif-dropdown {
 }
 
 .dash-card-tag {
-    font-size: 8px;
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    font-size: 8.5px;
     font-weight: 800;
     letter-spacing: 1.2px;
     font-family: 'Orbitron', sans-serif;
+    border-radius: 9999px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    box-sizing: border-box;
 }
 
 .dash-card-body {
@@ -11220,7 +11266,7 @@ body.theme-light .no-results p,
 }
 
 /* 2. Tablet & Mobile Drawer (<= 900px) */
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     .app-container {
         grid-template-columns: 1fr !important;
         padding: 16px 18px !important;
@@ -11245,7 +11291,7 @@ body.theme-light .no-results p,
         backface-visibility: hidden;
         transform-style: flat;
         contain: paint;
-        z-index: 3000 !important;
+        z-index: 500001 !important;
         background: linear-gradient(180deg, #090c1c 0%, #05060f 100%) !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
@@ -11280,7 +11326,7 @@ body.theme-light .no-results p,
         background: rgba(3, 5, 14, 0.78);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        z-index: 2995;
+        z-index: 500000 !important;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
@@ -11328,7 +11374,7 @@ body.theme-light .no-results p,
         background: rgba(2, 4, 12, 0.82) !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
-        z-index: 2500 !important;
+        z-index: 500000 !important;
         opacity: 0 !important;
         pointer-events: none !important;
         transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -11488,7 +11534,7 @@ body.theme-light .mobile-sidebar-backdrop {
         gap: 12px !important;
         max-width: 100vw !important;
         width: 100% !important;
-        overflow-x: clip !important;
+        overflow-x: hidden !important;
     }
 
     .app-sidebar {
@@ -12110,11 +12156,10 @@ body.theme-light .mobile-sidebar-backdrop {
     width: 340px;
     height: 340px;
     border-radius: 50%;
-    background: var(--neon-cyan);
-    filter: blur(90px);
-    opacity: 0.22;
+    background: radial-gradient(circle, var(--neon-cyan) 0%, transparent 70%);
+    opacity: 0.30;
     pointer-events: none;
-    transition: background 0.5s ease, opacity 0.5s ease;
+    transition: opacity 0.5s ease;
     z-index: 1;
 }
 
@@ -12541,7 +12586,16 @@ body.theme-light .mobile-sidebar-backdrop {
 }
 
 /* Responsive Media Queries */
-@media (min-width: 641px) and (max-width: 1023px) {
+@media (max-width: 900.98px) {
+    .developers-section {
+        padding: 10px 14px 30px 14px;
+    }
+
+    .team-hero-card-container {
+        max-width: 440px;
+    }
+
+    /* Fixed uniform dimensions on tablet/mobile so all team members have exact same length, height, width */
     .team-hero-card {
         padding: 26px 28px !important;
         gap: 24px !important;
@@ -14329,7 +14383,7 @@ body.theme-mono #admin-pending-badge,
     position: fixed;
     bottom: 24px;
     right: 24px;
-    z-index: 999999;
+    z-index: 2000000 !important;
     display: flex;
     flex-direction: column-reverse;
     gap: 12px;
@@ -21364,7 +21418,7 @@ body.theme-mono #edit-profile-modal .modal-footer,
 }
 
 /* Responsive */
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     .hw-ledger-header-card {
         flex-direction: column;
         align-items: flex-start;
@@ -21456,7 +21510,7 @@ body.theme-mono #edit-profile-modal .modal-footer,
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     .hw-ledger-header-card {
         flex-direction: column;
         align-items: flex-start;
@@ -22420,7 +22474,7 @@ body.theme-light .sidebar-scroll-content::-webkit-scrollbar-thumb:hover,
     overflow: visible !important;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     .explorer-stats-row {
         grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
         gap: 10px !important;
@@ -23216,9 +23270,7 @@ body.theme-light .breadcrumb-active {
 html[data-theme="light"] .search-box-new,
 body.theme-light .search-box-new,
 html[data-theme="light"] #header-search-input,
-body.theme-light #header-search-input,
-html[data-theme="light"] #search-input,
-body.theme-light #search-input {
+body.theme-light #header-search-input {
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.88) 0%, rgba(244, 236, 254, 0.92) 100%) !important;
     border: 1px solid rgba(130, 90, 210, 0.22) !important;
     border-radius: 14px !important;
@@ -23522,15 +23574,36 @@ body.theme-light .vault-toolbar-card {
 }
 
 html[data-theme="light"] .vault-search-input-wrap input,
-body.theme-light .vault-search-input-wrap input {
+body.theme-light .vault-search-input-wrap input,
+html[data-theme="light"] #search-input,
+body.theme-light #search-input {
     background: #F4EEFD !important;
-    border: 1px solid rgba(130, 90, 210, 0.22) !important;
+    border: 1.5px solid rgba(130, 90, 210, 0.26) !important;
     color: #17152B !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 10px 42px 10px 46px !important;
+    border-radius: 12px !important;
+    font-size: 13.5px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 2px 8px rgba(100, 70, 160, 0.04) !important;
+}
+
+html[data-theme="light"] .vault-search-input-wrap input:focus,
+body.theme-light .vault-search-input-wrap input:focus,
+html[data-theme="light"] #search-input:focus,
+body.theme-light #search-input:focus {
+    background: #FAF6FF !important;
+    border-color: #8058D7 !important;
+    box-shadow: 0 0 0 3px rgba(128, 88, 215, 0.16) !important;
 }
 
 html[data-theme="light"] .vault-search-input-wrap input::placeholder,
-body.theme-light .vault-search-input-wrap input::placeholder {
-    color: #82789e !important;
+body.theme-light .vault-search-input-wrap input::placeholder,
+html[data-theme="light"] #search-input::placeholder,
+body.theme-light #search-input::placeholder {
+    color: #7E7799 !important;
+    font-size: 13.5px !important;
 }
 
 html[data-theme="light"] .vault-search-input-wrap .search-icon,
@@ -23767,14 +23840,32 @@ body.theme-light .dashboard-greeting-card {
     border: 1px solid rgba(130, 90, 210, 0.22) !important;
     border-radius: 20px !important;
     box-shadow: 0 10px 30px rgba(100, 70, 160, 0.08) !important;
+    padding: 24px 28px !important;
+    margin-bottom: 24px !important;
     position: relative !important;
     overflow: hidden !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+html[data-theme="light"] .dashboard-subtitle-accent,
+body.theme-light .dashboard-subtitle-accent {
+    color: #7956E8 !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+    margin-bottom: 6px !important;
+    display: inline-block !important;
 }
 
 html[data-theme="light"] .dashboard-greeting-title,
 body.theme-light .dashboard-greeting-title {
     color: #17152B !important;
-    font-weight: 700 !important;
+    font-size: clamp(22px, 2.5vw, 32px) !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    letter-spacing: -0.02em !important;
 }
 
 html[data-theme="light"] .dashboard-greeting-sub,
@@ -23788,11 +23879,13 @@ body.theme-light .card-clock-right {
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-end !important;
+    justify-content: center !important;
     gap: 4px !important;
-    padding-left: 24px !important;
-    border-left: 1px solid rgba(130, 90, 210, 0.18) !important;
+    padding-left: 28px !important;
+    border-left: 1px solid rgba(130, 90, 210, 0.20) !important;
     position: relative !important;
     z-index: 2 !important;
+    white-space: nowrap !important;
 }
 
 html[data-theme="light"] .clock-date,
@@ -23808,9 +23901,10 @@ body.theme-light .clock-date {
 html[data-theme="light"] .clock-time,
 body.theme-light .clock-time {
     color: #17152B !important;
-    font-weight: 700 !important;
-    font-size: 1.5rem !important;
-    letter-spacing: -0.02em !important;
+    font-weight: 800 !important;
+    font-size: 1.55rem !important;
+    letter-spacing: 0.5px !important;
+    font-family: 'Orbitron', monospace, sans-serif !important;
     white-space: nowrap !important;
 }
 
@@ -23821,6 +23915,12 @@ body.theme-light .dash-card {
     border: 1px solid rgba(130, 90, 210, 0.18) !important;
     border-radius: 18px !important;
     box-shadow: 0 8px 24px rgba(100, 70, 160, 0.06) !important;
+    padding: 22px 24px 20px 24px !important;
+    min-height: 195px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
     transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -23836,27 +23936,46 @@ html[data-theme="light"] .dash-card-icon-wrapper,
 body.theme-light .dash-card-icon-wrapper {
     background: rgba(156, 120, 237, 0.14) !important;
     color: #8058D7 !important;
-    border-radius: 12px !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 html[data-theme="light"] .dash-card-tag,
 body.theme-light .dash-card-tag {
-    background: rgba(245, 184, 235, 0.22) !important;
-    color: #B04CA0 !important;
-    border: 1px solid rgba(245, 184, 235, 0.40) !important;
-    font-weight: 600 !important;
-    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    background: rgba(128, 88, 215, 0.10) !important;
+    color: #7956E8 !important;
+    border: 1px solid rgba(128, 88, 215, 0.25) !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.8px !important;
+    border-radius: 9999px !important;
+    padding: 3px 9px !important;
+    line-height: 1.2 !important;
+    text-transform: uppercase !important;
+    box-sizing: border-box !important;
 }
 
 html[data-theme="light"] .dash-card-title,
 body.theme-light .dash-card-title {
     color: #17152B !important;
+    font-size: 16.5px !important;
     font-weight: 700 !important;
+    line-height: 1.25 !important;
+    margin: 0 0 6px 0 !important;
 }
 
 html[data-theme="light"] .dash-card-desc,
 body.theme-light .dash-card-desc {
     color: #585170 !important;
+    font-size: 12.5px !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
 }
 
 /* ========================================================
@@ -25302,7 +25421,8 @@ body.theme-mono * {
     }
 }
 
-@media (max-width: 900px) {
+/* Tablet & Mobile Layout Adjustment (<= 900px) */
+@media (max-width: 900.98px) {
     html[data-theme="mono"] .app-container,
     body.theme-mono .app-container {
         display: block !important;
@@ -25321,7 +25441,7 @@ body.theme-mono * {
         width: min(300px, 86vw) !important;
         height: 100vh !important;
         height: 100dvh !important;
-        z-index: 3000 !important;
+        z-index: 500001 !important;
         background: #0F1012 !important;
         border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
         transform: translate3d(-105%, 0, 0) !important;
@@ -26953,6 +27073,506 @@ body.theme-mono .welcome-highlight-name {
     color: #5E9F8F !important;
 }
 
+html[data-theme="mono"] .welcome-subtext,
+body.theme-mono .welcome-subtext {
+    color: #AAA79F !important;
+    font-weight: 500 !important;
+}
+
+html[data-theme="mono"] .cyber-toast.toast-welcome .toast-close-btn,
+body.theme-mono .cyber-toast.toast-welcome .toast-close-btn {
+    color: #74716B !important;
+}
+
+html[data-theme="mono"] .cyber-toast.toast-welcome .toast-close-btn:hover,
+body.theme-mono .cyber-toast.toast-welcome .toast-close-btn:hover {
+    color: #F2F0E9 !important;
+}
+
+html[data-theme="mono"] .welcome-progress-track,
+body.theme-mono .welcome-progress-track {
+    background: #1C1B19 !important;
+}
+
+html[data-theme="mono"] .welcome-progress-fill,
+body.theme-mono .welcome-progress-fill {
+    background: #C8BFA8 !important;
+    box-shadow: none !important;
+}
+
+/* 19. Auth Overlay & Card */
+html[data-theme="mono"] .auth-card,
+body.theme-mono .auth-card {
+    background: #171715 !important;
+    border: 1px solid #2B2A27 !important;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    position: relative !important;
+}
+
+html[data-theme="mono"] .auth-card::before,
+body.theme-mono .auth-card::before {
+    content: "" !important;
+    position: absolute !important;
+    top: -1px !important;
+    left: -1px !important;
+    width: 8px !important;
+    height: 8px !important;
+    border-top: 2px solid rgba(200, 191, 168, 0.22) !important;
+    border-left: 2px solid rgba(200, 191, 168, 0.22) !important;
+    pointer-events: none !important;
+}
+
+html[data-theme="mono"] .auth-header h2,
+body.theme-mono .auth-header h2 {
+    color: #F2F0E9 !important;
+    -webkit-text-fill-color: #F2F0E9 !important;
+    background: none !important;
+}
+
+html[data-theme="mono"] .auth-header p,
+body.theme-mono .auth-header p,
+html[data-theme="mono"] #auth-subtitle,
+body.theme-mono #auth-subtitle {
+    color: #AAA79F !important;
+    font-weight: 600 !important;
+}
+
+html[data-theme="mono"] .auth-tab-switch,
+body.theme-mono .auth-tab-switch {
+    background: #121211 !important;
+    border: 1px solid #262522 !important;
+}
+
+html[data-theme="mono"] .auth-tab-btn,
+body.theme-mono .auth-tab-btn {
+    color: #AAA79F !important;
+    font-weight: 700 !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+}
+
+html[data-theme="mono"] .auth-tab-btn:hover,
+body.theme-mono .auth-tab-btn:hover {
+    color: #F2F0E9 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+html[data-theme="mono"] .auth-tab-btn.active,
+body.theme-mono .auth-tab-btn.active {
+    background: #E1DCCF !important;
+    color: #11110F !important;
+    border-color: #E1DCCF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="mono"] .auth-card .form-group label,
+body.theme-mono .auth-card .form-group label {
+    color: #CBC7BD !important;
+    font-weight: 600 !important;
+}
+
+html[data-theme="mono"] .auth-card .form-group input,
+body.theme-mono .auth-card .form-group input {
+    background: #121211 !important;
+    border: 1px solid #2B2A27 !important;
+    color: #F2F0E9 !important;
+}
+
+html[data-theme="mono"] .auth-card .form-group input:focus,
+body.theme-mono .auth-card .form-group input:focus {
+    border-color: #756E60 !important;
+    box-shadow: 0 0 0 2px rgba(200, 191, 168, 0.15) !important;
+    color: #F2F0E9 !important;
+}
+
+html[data-theme="mono"] .auth-card input::placeholder,
+body.theme-mono .auth-card input::placeholder {
+    color: #65625D !important;
+}
+
+html[data-theme="mono"] .auth-card .input-icon-wrapper .input-icon,
+body.theme-mono .auth-card .input-icon-wrapper .input-icon {
+    color: #74716B !important;
+}
+
+html[data-theme="mono"] .auth-card .password-toggle-btn,
+body.theme-mono .auth-card .password-toggle-btn {
+    color: #AAA79F !important;
+}
+
+html[data-theme="mono"] .auth-forgot-link,
+body.theme-mono .auth-forgot-link {
+    color: #C8BFA8 !important;
+    font-weight: 600 !important;
+}
+
+html[data-theme="mono"] .auth-forgot-link:hover,
+body.theme-mono .auth-forgot-link:hover {
+    color: #F2F0E9 !important;
+    text-decoration: underline !important;
+}
+
+html[data-theme="mono"] .auth-card .btn-primary,
+body.theme-mono .auth-card .btn-primary {
+    background: #E1DCCF !important;
+    color: #11110F !important;
+    font-weight: 700 !important;
+    border: 1px solid #E1DCCF !important;
+}
+
+html[data-theme="mono"] .auth-card .btn-primary:hover,
+body.theme-mono .auth-card .btn-primary:hover {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+}
+
+html[data-theme="mono"] .auth-switch-prompt,
+body.theme-mono .auth-switch-prompt {
+    color: #AAA79F !important;
+}
+
+html[data-theme="mono"] .auth-switch-prompt a,
+body.theme-mono .auth-switch-prompt a {
+    color: #C8BFA8 !important;
+    font-weight: 600 !important;
+    text-decoration: underline !important;
+}
+
+/* 20. Responsiveness & Viewport Scalability */
+@media (max-width: 768px) {
+    html[data-theme="mono"] .dashboard-greeting-card::before,
+    body.theme-mono .dashboard-greeting-card::before,
+    html[data-theme="mono"] .profile-clean-hero::before,
+    body.theme-mono .profile-clean-hero::before {
+        display: none !important;
+    }
+}
+
+/* ========================================================
+   UNIFIED TOP HEADER BAR & PILLS SYSTEM
+   Aligns Menu Toggle, Breadcrumbs, Cart, Notifications, & Theme Selector
+   Single horizontal axis baseline for both Robo Lab & Midnight Mono
+   ======================================================== */
+.viewport-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    padding: 0 18px !important;
+    box-sizing: border-box !important;
+    margin-bottom: 24px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 16px !important;
+    z-index: 99999 !important;
+}
+
+.header-left {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+}
+
+.header-right {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    z-index: 100000 !important;
+}
+
+/* Base Unified Pill Standards for ALL Header Controls */
+.breadcrumbs,
+.header-cart-btn,
+.header-notif-btn,
+.header-theme-box {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    margin: 0 !important;
+    font-family: inherit !important;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease !important;
+}
+
+/* 1. Mobile Sidebar Toggle Button - Strictly Hidden on Desktop / PC */
+.mobile-sidebar-toggle {
+    display: none !important;
+}
+
+@media (max-width: 900.98px) {
+    .mobile-sidebar-toggle {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        max-height: 38px !important;
+        border-radius: 9999px !important;
+        box-sizing: border-box !important;
+        vertical-align: middle !important;
+        margin: 0 !important;
+        font-family: inherit !important;
+        padding: 0 12px !important;
+        cursor: pointer !important;
+        gap: 6px !important;
+        transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease !important;
+    }
+}
+
+.mobile-sidebar-toggle i,
+.mobile-sidebar-toggle svg {
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+}
+
+.mobile-sidebar-toggle span {
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    line-height: 1 !important;
+}
+
+/* 2. Breadcrumbs Capsule */
+.breadcrumbs {
+    padding: 0 14px !important;
+    gap: 8px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+}
+
+.breadcrumbs .breadcrumb-btn {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    font-family: inherit !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+.breadcrumbs .breadcrumb-separator {
+    opacity: 0.5 !important;
+    line-height: 1 !important;
+    user-select: none !important;
+}
+
+/* 3. Cart & Notifications Buttons */
+.header-cart-btn,
+.header-notif-btn {
+    padding: 0 12px 0 6px !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+}
+
+.header-cart-icon-box,
+.header-notif-icon-box {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+}
+
+.header-cart-icon-box svg,
+.header-cart-icon-box i,
+.header-notif-icon-box svg,
+.header-notif-icon-box i {
+    width: 13px !important;
+    height: 13px !important;
+}
+
+.header-cart-text,
+.header-notif-text {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.6px !important;
+    line-height: 1 !important;
+}
+
+.header-notif-dot {
+    display: none !important;
+}
+
+.header-cart-badge,
+.header-notif-badge {
+    min-width: 18px !important;
+    height: 18px !important;
+    border-radius: 9999px !important;
+    padding: 0 5px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
+
+/* 4. Theme Selector Box */
+.header-theme-box {
+    padding: 0 10px !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+}
+
+.header-theme-box .header-theme-icon {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    flex-shrink: 0 !important;
+}
+
+.header-theme-box select {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-family: inherit !important;
+}
+
+/* --------------------------------------------------------
+   MIDNIGHT MONO THEME (DARK) SPECIFICS
+   -------------------------------------------------------- */
+html[data-theme="mono"] .viewport-header,
+body.theme-mono .viewport-header {
+    background: #10100F !important;
+    border: 1px solid #262522 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme="mono"] .mobile-sidebar-toggle,
+body.theme-mono .mobile-sidebar-toggle,
+html[data-theme="mono"] .breadcrumbs,
+body.theme-mono .breadcrumbs,
+html[data-theme="mono"] .header-cart-btn,
+body.theme-mono .header-cart-btn,
+html[data-theme="mono"] .header-notif-btn,
+body.theme-mono .header-notif-btn,
+html[data-theme="mono"] .header-theme-box,
+body.theme-mono .header-theme-box {
+    background: #171715 !important;
+    border: 1px solid #2B2A27 !important;
+    color: #F2F0E9 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02) !important;
+}
+
+html[data-theme="mono"] .mobile-sidebar-toggle:hover,
+body.theme-mono .mobile-sidebar-toggle:hover,
+html[data-theme="mono"] .header-cart-btn:hover,
+body.theme-mono .header-cart-btn:hover,
+html[data-theme="mono"] .header-notif-btn:hover,
+body.theme-mono .header-notif-btn:hover,
+html[data-theme="mono"] .header-theme-box:hover,
+body.theme-mono .header-theme-box:hover {
+    background: #22211F !important;
+    border-color: #383733 !important;
+    transform: translateY(-1px) !important;
+}
+
+html[data-theme="mono"] .mobile-sidebar-toggle i,
+html[data-theme="mono"] .mobile-sidebar-toggle svg,
+body.theme-mono .mobile-sidebar-toggle i,
+body.theme-mono .mobile-sidebar-toggle svg {
+    color: #72C7D5 !important;
+}
+
+html[data-theme="mono"] .mobile-sidebar-toggle span,
+body.theme-mono .mobile-sidebar-toggle span {
+    color: #F2F0E9 !important;
+}
+
+html[data-theme="mono"] .breadcrumbs .breadcrumb-root,
+body.theme-mono .breadcrumbs .breadcrumb-root {
+    color: #85817A !important;
+}
+
+html[data-theme="mono"] .breadcrumbs .breadcrumb-separator,
+body.theme-mono .breadcrumbs .breadcrumb-separator {
+    color: #55534F !important;
+}
+
+html[data-theme="mono"] .breadcrumbs .breadcrumb-active,
+body.theme-mono .breadcrumbs .breadcrumb-active {
+    color: #F2F0E9 !important;
+}
+
+html[data-theme="mono"] .header-cart-icon-box,
+body.theme-mono .header-cart-icon-box,
+html[data-theme="mono"] .header-notif-icon-box,
+body.theme-mono .header-notif-icon-box {
+    background: #20201E !important;
+    border: 1px solid #33322E !important;
+    color: #72C7D5 !important;
+}
+
+html[data-theme="mono"] .header-cart-text,
+body.theme-mono .header-cart-text,
+html[data-theme="mono"] .header-notif-text,
+body.theme-mono .header-notif-text,
+html[data-theme="mono"] .header-theme-box select,
+body.theme-mono .header-theme-box select {
+    color: #F2F0E9 !important;
+}
+
+html[data-theme="mono"] .header-theme-box .header-theme-icon,
+body.theme-mono .header-theme-box .header-theme-icon {
+    color: #AAA79F !important;
+}
+
+html[data-theme="mono"] .header-theme-box select option,
+body.theme-mono .header-theme-box select option {
+    background: #171715 !important;
+    color: #F2F0E9 !important;
+}
+
+html[data-theme="mono"] .header-cart-badge,
+body.theme-mono .header-cart-badge,
+html[data-theme="mono"] .header-notif-badge,
+body.theme-mono .header-notif-badge {
+    background: #E1DCCF !important;
+    color: #11110F !important;
+    border: 1px solid #E1DCCF !important;
+}
 
 /* --------------------------------------------------------
    ROBO LAB THEME (LIGHT) SPECIFICS
@@ -28566,7 +29186,7 @@ body.theme-light .admin-table-responsive::-webkit-scrollbar-thumb:hover {
 }
 
 /* Responsive Table Adaptations */
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     .admin-users-controls {
         flex-direction: column !important;
         align-items: stretch !important;
@@ -29036,14 +29656,22 @@ body.theme-light #signup-password:-webkit-autofill {
 /* ========================================================
    STICKY NAVBAR & SIDEBAR BEHAVIOR (Always Visible On Scroll)
    ======================================================== */
-html,
+html {
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+}
+
 body,
 html[data-theme="mono"] body,
 body.theme-mono,
 html[data-theme="light"] body,
-body.theme-light {
+body.theme-light,
+html[data-theme="decent"] body,
+body.theme-decent {
     overflow-x: clip !important;
     overflow-y: visible !important;
+    min-height: 100vh !important;
+    height: auto !important;
 }
 
 .app-container {
@@ -29106,7 +29734,7 @@ body.theme-light .viewport-header {
 }
 
 /* Mobile & Tablet Drawer and Header Layout (<= 900px) */
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     html.is-authenticated #app-container,
     .app-container,
     html[data-theme="mono"] .app-container,
@@ -29150,7 +29778,7 @@ body.theme-light .viewport-header {
         align-self: auto !important;
         transform: translate3d(-105%, 0, 0) !important;
         -webkit-transform: translate3d(-105%, 0, 0) !important;
-        z-index: 999999 !important;
+        z-index: 500001 !important;
         margin: 0 !important;
     }
 
@@ -29173,7 +29801,7 @@ body.theme-light .viewport-header {
         top: 8px !important;
         margin-top: 0 !important;
         margin-bottom: 12px !important;
-        z-index: 9999 !important;
+        z-index: 99999 !important;
     }
 }
 
@@ -29672,23 +30300,10 @@ button, a, select, input, .sidebar-nav-link, .sidebar-item, .dash-card, .invento
     touch-action: manipulation;
 }
 
-/* 2. Content Visibility and Render Containment for Massive Catalog Grids */
-.inventory-grid {
-    content-visibility: auto;
-    contain-intrinsic-size: 800px;
-}
-
-.inventory-card {
-    contain: layout style;
-    will-change: auto;
-}
-
-.dashboard-grid {
-    contain: layout style;
-}
-
+/* 2. Fast render optimization for catalog and dashboard */
+.inventory-card,
 .dash-card {
-    contain: layout style;
+    will-change: transform, opacity;
 }
 
 /* 3. Smooth touch scrolling on mobile drawers & modals */
@@ -29861,21 +30476,20 @@ button, a, select, input, .sidebar-nav-link, .sidebar-item, .dash-card, .invento
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
-        height: 42px !important;
-        min-height: 42px !important;
-        max-height: 42px !important;
+        height: 44px !important;
+        min-height: 44px !important;
         position: relative !important;
         box-sizing: border-box !important;
     }
 
     .vault-search-input-wrap input {
         width: 100% !important;
-        height: 42px !important;
-        min-height: 42px !important;
-        max-height: 42px !important;
+        height: 44px !important;
+        min-height: 44px !important;
         box-sizing: border-box !important;
-        padding: 8px 36px 8px 36px !important;
+        padding: 10px 38px 10px 46px !important;
         font-size: 13px !important;
+        border-radius: 12px !important;
     }
 
     /* Swipeable Category Carousel on Mobile (Never Truncates "Actuators" to "Actuat...") */
@@ -30435,7 +31049,7 @@ body.theme-decent input::placeholder {
 /* ========================================================
    MOBILE FLUIDITY & ZERO-FLICKER ACCELERATION (<= 900px)
    ======================================================== */
-@media (max-width: 900px) {
+@media (max-width: 900.98px) {
     /* Bypass expensive multi-layer GPU blur filters on specific mobile surfaces to guarantee 60-120fps without wildcard thrash */
     .glass,
     .modal-content,
@@ -30634,8 +31248,7 @@ body.theme-decent #header-theme-select:focus {
 .search-box input,
 #hw-ledger-search,
 #admin-audit-search,
-#admin-users-search,
-#search-input {
+#admin-users-search {
     background: transparent !important;
     border: none !important;
     outline: none !important;
@@ -30655,8 +31268,7 @@ body.theme-decent #header-theme-select:focus {
 .search-box input:focus,
 #hw-ledger-search:focus,
 #admin-audit-search:focus,
-#admin-users-search:focus,
-#search-input:focus {
+#admin-users-search:focus {
     outline: none !important;
     border: none !important;
     box-shadow: none !important;
@@ -30673,9 +31285,7 @@ body.theme-light #hw-ledger-search,
 html[data-theme="light"] #admin-audit-search,
 body.theme-light #admin-audit-search,
 html[data-theme="light"] #admin-users-search,
-body.theme-light #admin-users-search,
-html[data-theme="light"] #search-input,
-body.theme-light #search-input {
+body.theme-light #admin-users-search {
     color: #17152B !important;
 }
 
@@ -30686,9 +31296,7 @@ body.theme-light .admin-audit-search-wrap input::placeholder,
 html[data-theme="light"] #hw-ledger-search::placeholder,
 body.theme-light #hw-ledger-search::placeholder,
 html[data-theme="light"] #admin-audit-search::placeholder,
-body.theme-light #admin-audit-search::placeholder,
-html[data-theme="light"] #search-input::placeholder,
-body.theme-light #search-input::placeholder {
+body.theme-light #admin-audit-search::placeholder {
     color: #827A9C !important;
 }
 
@@ -30788,17 +31396,39 @@ body.theme-light .admin-audit-hud-right .btn-sm {
 }
 
 /* ==========================================================================
-   GLOBAL ZERO-OVERFLOW & SMOOTH HARDWARE RENDERING
+   GLOBAL ZERO-OVERFLOW & UNCONSTRAINED DOCUMENT SCROLLING
    ========================================================================== */
-html,
-body,
+html {
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+    max-width: 100vw !important;
+    height: auto !important;
+    min-height: 100% !important;
+    scrollbar-gutter: stable;
+}
+
+body {
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+    height: auto !important;
+}
+
 .app-container,
+.main-viewport-wrapper,
 .main-viewport,
 .main-content,
+#app-main-content,
+.dashboard-section,
+.inventory-section,
+.vault-section,
 .developers-section,
 .team-showcase-container {
-    overflow-x: hidden !important;
-    max-width: 100vw !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    max-height: none !important;
 }
 
 /* ==========================================================================
@@ -34545,4 +35175,47 @@ h1, h2, h3, h4, h5, h6,
 .empty-state-desc {
     text-align: center !important;
 }
+
+/* ==========================================================================
+   DEFINITIVE ZERO-SCROLL-LOCK & UNCONSTRAINED DOCUMENT SCROLLING
+   ========================================================================== */
+html {
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+    max-width: 100vw !important;
+    height: auto !important;
+    min-height: 100% !important;
+    scrollbar-gutter: stable;
+}
+
+body,
+html[data-theme="mono"] body,
+body.theme-mono,
+html[data-theme="light"] body,
+body.theme-light,
+html[data-theme="decent"] body,
+body.theme-decent {
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+    height: auto !important;
+}
+
+.app-container,
+.main-viewport-wrapper,
+.main-viewport,
+.main-content,
+#app-main-content,
+.dashboard-section,
+.inventory-section,
+.vault-section,
+.developers-section,
+.team-showcase-container {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    max-height: none !important;
+}
+
 
