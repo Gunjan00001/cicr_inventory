@@ -809,5 +809,7 @@ Distributed under the **MIT License**. Built with 🧠 + 🔧 by the **Creative 
 **© 2026 CICR Inventory Hub — Creative & Innovative Cell in Robotics**
 
 [![Visit Vault](https://img.shields.io/badge/VISIT-VAULT-00f0ff?style=for-the-badge)](https://cicrinventory.vercel.app/)
+[![Live URL](cicr-inventory.vercel.app)
+
 
 </div>
