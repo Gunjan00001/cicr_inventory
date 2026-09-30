@@ -39,23 +39,31 @@ export const isSuperAdminEmail = (email: string): boolean => {
   return currentList.some((admin) => admin.toLowerCase() === norm);
 };
 
-export const isDesignatedAdmin = (email: string, _name?: string): boolean => {
+export const DEFAULT_BLOCKED_ADMIN_EMAILS = [
+  'mahakkatahara.mk@gmail.com',
+  '992501030398@mail.jiit.ac.in',
+  '992501210090@mail.jiit.ac.in',
+  'mahak',
+  'divyam'
+];
+
+export const isBlockedAdminEmail = (email: string): boolean => {
   const norm = (email || '').trim().toLowerCase();
-  const blockedAdminEmails = (process.env.BLOCKED_ADMIN_EMAILS || '')
+  if (!norm) return false;
+  const configured = (process.env.BLOCKED_ADMIN_EMAILS || '')
     .toLowerCase()
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+  const allBlocked = Array.from(new Set([...DEFAULT_BLOCKED_ADMIN_EMAILS, ...configured]));
+  return allBlocked.some((b) => norm === b || norm.includes(b));
+};
+
+export const isDesignatedAdmin = (email: string, _name?: string): boolean => {
+  const norm = (email || '').trim().toLowerCase();
 
   // Explicitly demote/block Mahak & Divyam from Admin privileges
-  if (
-    norm === 'mahakkatahara.mk@gmail.com' ||
-    norm === '992501030398@mail.jiit.ac.in' ||
-    norm === '992501210090@mail.jiit.ac.in' ||
-    norm.includes('mahak') ||
-    norm.includes('divyam') ||
-    blockedAdminEmails.some((b) => norm === b || norm.includes(b))
-  ) {
+  if (isBlockedAdminEmail(norm)) {
     return false;
   }
 
@@ -320,15 +328,7 @@ export const setUserRole = (
 
   purgedEmails.delete(normEmail);
 
-  const blockedAdminEmails = (process.env.BLOCKED_ADMIN_EMAILS || '').toLowerCase().split(',').map((s) => s.trim()).filter(Boolean);
-  if (
-    blockedAdminEmails.includes(normEmail) ||
-    normEmail === 'mahakkatahara.mk@gmail.com' ||
-    normEmail === '992501030398@mail.jiit.ac.in' ||
-    normEmail === '992501210090@mail.jiit.ac.in' ||
-    normEmail.includes('mahak') ||
-    normEmail.includes('divyam')
-  ) {
+  if (isBlockedAdminEmail(normEmail)) {
     role = 'MEMBER';
   }
 

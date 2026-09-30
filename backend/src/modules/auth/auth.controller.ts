@@ -23,7 +23,8 @@ import {
   getAllAdminEmails,
   syncApprovalsFromDatabase,
   checkUserApprovalInDatabase,
-  updateUserMetadata
+  updateUserMetadata,
+  isBlockedAdminEmail
 } from './userApprovalService';
 import {
   sendAdminNewUserRegistrationAlert,
@@ -806,8 +807,7 @@ export const changeUserRole = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ status: 'error', message: 'Cannot demote a Master Admin / Administrator.' });
     }
 
-    const blockedAdminEmails = (process.env.BLOCKED_ADMIN_EMAILS || '').toLowerCase().split(',').map((s) => s.trim()).filter(Boolean);
-    if (blockedAdminEmails.includes(user.email.toLowerCase()) && role === 'ADMIN') {
+    if (isBlockedAdminEmail(user.email) && role === 'ADMIN') {
       return res.status(400).json({ status: 'error', message: 'User is not permitted to hold an ADMIN role.' });
     }
 
@@ -1094,8 +1094,7 @@ export const adminCreateUser = async (req: AuthRequest, res: Response) => {
     const userBatch = batch ? String(batch).trim() : null;
     const userRole = role === 'ADMIN' ? 'ADMIN' : 'MEMBER';
 
-    const blockedAdminEmails = (process.env.BLOCKED_ADMIN_EMAILS || '').toLowerCase().split(',').map((s) => s.trim()).filter(Boolean);
-    if (blockedAdminEmails.includes(normEmail) && userRole === 'ADMIN') {
+    if (isBlockedAdminEmail(normEmail) && userRole === 'ADMIN') {
       return res.status(400).json({ status: 'error', message: 'User is not permitted to hold an ADMIN role.' });
     }
 
