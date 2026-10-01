@@ -22840,8 +22840,8 @@ body.theme-light .robolab-bg-robot {
     pointer-events: none !important;
     animation: none !important;
     transform: translateZ(0) !important;
-    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.2) 90%, rgba(0,0,0,0) 100%) !important;
-    mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.2) 90%, rgba(0,0,0,0) 100%) !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
 }
 
 @keyframes robolabRobotFloat {
@@ -30316,7 +30316,7 @@ button, a, select, input, .sidebar-nav-link, .sidebar-item, .dash-card, .invento
 /* 2. Fast render optimization for catalog and dashboard */
 .inventory-card,
 .dash-card {
-    will-change: transform, opacity;
+    will-change: auto !important;
 }
 
 /* 3. Smooth touch scrolling on mobile drawers & modals */
@@ -34059,9 +34059,8 @@ textarea {
 
 /* 9. High-Performance GPU Interactions for Cards & Controls */
 .dash-card {
-    will-change: transform, box-shadow !important;
+    will-change: auto !important;
     backface-visibility: hidden !important;
-    transform: translateZ(0) !important;
 }
 
 .dash-card:hover {
@@ -35443,16 +35442,12 @@ body.theme-decent {
 /* ==========================================================================
    HIGH-PERFORMANCE RENDERING, GPU ACCELERATION & MOBILE TOUCH OPTIMIZATIONS
    ========================================================================== */
-/* Hardware-accelerated rendering for smooth 60fps animations & scrolling */
+/* Hardware-accelerated rendering strictly for fixed/sticky chrome to avoid layer explosion */
 .viewport-header,
 .app-sidebar,
 .mobile-sidebar-toggle,
 .header-cart-btn,
 .header-notif-btn,
-.vault-toolbar-card,
-.vault-metric-card,
-.stat-bubble-new,
-.tag-pill,
 .auth-card,
 .modal-card,
 .floating-cart-fab {
@@ -35477,13 +35472,30 @@ select,
     -webkit-tap-highlight-color: transparent;
 }
 
-/* CSS containment for zero layout thrashing on heavy component lists */
-.inventory-card,
-.dash-card,
-.vault-metric-card,
-.stat-bubble-new,
-.team-member-card {
+/* Modern content-visibility for ultra-fast list & grid rendering:
+   Skips layout, paint, and style calculation for off-screen cards until scrolled into view */
+.inventory-card {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 260px;
     contain: layout style;
+    will-change: auto !important;
+}
+
+.dash-card,
+.team-showcase-card,
+.developers-card,
+.team-member-card,
+.hw-ledger-table-wrap tr {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 180px;
+    contain: layout style;
+    will-change: auto !important;
+}
+
+.vault-metric-card,
+.stat-bubble-new {
+    contain: layout style;
+    will-change: auto !important;
 }
 
 /* Modals & drawers overscroll containment (prevents background scroll-chaining) */
@@ -35499,6 +35511,38 @@ html, body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile & Touch Performance Boost: Eliminate expensive backdrop blurs on mobile devices */
+@media (max-width: 768px) {
+    .inventory-card,
+    .dash-card,
+    .vault-toolbar-card,
+    .dashboard-greeting-card,
+    .team-member-card,
+    .profile-clean-card,
+    .admin-panel-card {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    body.theme-light .inventory-card,
+    html[data-theme="light"] .inventory-card {
+        background: #FFFFFF !important;
+        box-shadow: 0 2px 8px rgba(100, 70, 160, 0.06) !important;
+    }
+
+    body.theme-mono .inventory-card,
+    html[data-theme="mono"] .inventory-card {
+        background: #17181B !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    body.theme-decent .inventory-card,
+    html[data-theme="decent"] .inventory-card {
+        background: #0d1422 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    }
 }
 
 

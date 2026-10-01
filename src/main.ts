@@ -403,21 +403,22 @@ class Background3D {
         this.canvas = document.getElementById('canvas-3d') as HTMLCanvasElement;
         if (!this.canvas) return;
 
-        // Skip WebGL initialization on mobile & touch devices to conserve GPU memory and eliminate mobile screen flickering
+        // Skip WebGL initialization on mobile & touch devices
         const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
         if (isMobile) {
             this.canvas.style.display = 'none';
-            // Lazy boot if user resizes browser from mobile to desktop
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768 && !this.isInitialized) {
-                    if (this.canvas) this.canvas.style.display = '';
-                    this.startEngine();
-                }
-            }, { passive: true });
             return;
         }
 
-        this.startEngine();
+        const activeTheme = (typeof localStorage !== 'undefined' && (localStorage.getItem('cicr_vault_theme') || localStorage.getItem('cicr_theme'))) || 'light';
+        this.currentTheme = activeTheme;
+
+        // Strictly lazy-boot Three.js WebGL engine ONLY when Cyber Decent theme is active
+        if (activeTheme === 'decent') {
+            this.startEngine();
+        } else {
+            this.canvas.style.display = 'none';
+        }
     }
 
     private rafId: number | null = null;
@@ -425,6 +426,7 @@ class Background3D {
     private startEngine() {
         if (this.isInitialized) return;
         this.isInitialized = true;
+        if (this.canvas) this.canvas.style.display = '';
         this.init();
         this.createLighting();
         this.createParticles();
@@ -484,10 +486,21 @@ class Background3D {
     public updateThemeColors(theme: string) {
         this.currentTheme = theme;
         if (theme === 'decent') {
+            const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+            if (isMobile) {
+                this.stop();
+                if (this.canvas) this.canvas.style.display = 'none';
+                return;
+            }
+            if (this.canvas) this.canvas.style.display = '';
+            if (!this.isInitialized) {
+                this.startEngine();
+            }
             this.setParticleColorsForTheme(theme);
             this.start();
         } else {
             this.stop();
+            if (this.canvas) this.canvas.style.display = 'none';
         }
     }
 
