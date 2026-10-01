@@ -1,4 +1,8 @@
 process.env.DISABLE_ALL_EMAILS = 'true';
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_secret_for_tests_only';
+process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost:54321';
+process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'test-anon-key';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const bcrypt = require('bcryptjs');
@@ -51,7 +55,7 @@ test('3. Direct login with pre-hashed SHA-256 password succeeds against matching
   const storedBcrypt = bcrypt.hashSync(hashedPass, 4);
 
   const mockUser = {
-    id: 'usr-1',
+    id: '00000000-0000-0000-0000-000000000001',
     email: 'student1@mail.jiit.ac.in',
     name: 'Student One',
     role: 'MEMBER',
@@ -64,11 +68,14 @@ test('3. Direct login with pre-hashed SHA-256 password succeeds against matching
     or() { return chain; },
     limit() { return chain; },
     async maybeSingle() { return { data: mockUser }; },
-    update() { return { eq: async () => ({ error: null }) }; }
+    update() { return { eq: async () => ({ error: null }) }; },
+    insert() { return { error: null }; }
   };
 
   const origFrom = dbModule.dbRead.from;
+  const origWrite = dbModule.dbWrite.from;
   dbModule.dbRead.from = () => chain;
+  dbModule.dbWrite.from = () => chain;
 
   try {
     const res = mockRes();
@@ -86,6 +93,7 @@ test('3. Direct login with pre-hashed SHA-256 password succeeds against matching
     assert.ok(res.body.token);
   } finally {
     dbModule.dbRead.from = origFrom;
+    dbModule.dbWrite.from = origWrite;
   }
 });
 
@@ -97,7 +105,7 @@ test('4. Legacy user with unhashed-bcrypt password auto-migrates to SHA-256 on l
   let capturedMigratedHash = null;
 
   const mockUser = {
-    id: 'usr-legacy-1',
+    id: '00000000-0000-0000-0000-000000000002',
     email: 'legacy@mail.jiit.ac.in',
     name: 'Legacy Student',
     role: 'MEMBER',
@@ -113,7 +121,8 @@ test('4. Legacy user with unhashed-bcrypt password auto-migrates to SHA-256 on l
     update(data) {
       capturedMigratedHash = data.password_hash;
       return { eq: async () => ({ error: null }) };
-    }
+    },
+    insert() { return { error: null }; }
   };
 
   const origRead = dbModule.dbRead.from;
@@ -159,7 +168,7 @@ test('5. resetPassword accepts client-side SHA-256 hashes and updates DB', async
   let capturedUpdate = null;
 
   const mockUser = {
-    id: 'usr-reset-1',
+    id: '00000000-0000-0000-0000-000000000003',
     email: 'resetuser@mail.jiit.ac.in',
     name: 'Reset Student',
     password_hash: storedCurrentBcrypt
@@ -172,7 +181,8 @@ test('5. resetPassword accepts client-side SHA-256 hashes and updates DB', async
     update(data) {
       capturedUpdate = data;
       return { eq: async () => ({ error: null }) };
-    }
+    },
+    insert() { return { error: null }; }
   };
 
   const origRead = dbModule.dbRead.from;
