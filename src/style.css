@@ -894,7 +894,6 @@ body.theme-light .auth-card input:-webkit-autofill:active {
         -webkit-backdrop-filter: none !important;
         background: #0e1017 !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
     }
 
     body.theme-light .auth-card,
@@ -35624,23 +35623,13 @@ html, body {
 }
 
 /* ==========================================================================
-   COMPREHENSIVE MOBILE MEDIA QUERY FIXES
-   Prevents horizontal overflow, ensures box-sizing, and fixes layouts on
-   all small-phone viewports (< 520px).
+   MOBILE MEDIA QUERY FIXES
    ========================================================================== */
 
-/* Global overflow guard: prevent any child from causing horizontal scroll */
+/* Global overflow guard - safe: only applied to root elements */
 html,
 body {
     overflow-x: hidden;
-    max-width: 100vw;
-}
-
-/* Ensure box-sizing is applied globally for reliable width calculations */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
 }
 
 /* Safe-area inset support for notched phones (iPhone X+, Android cutouts) */
@@ -35655,17 +35644,16 @@ body {
 
 /* ---- Small Phone: Auth Card ---- */
 @media (max-width: 519.98px) {
-    /* Prevent any auth form element from overflowing */
+    /* Form containers: width-constrained but NOT overflow:hidden (would clip inputs) */
     .auth-card form,
     .auth-card .form-group,
     .auth-card .signup-form-grid {
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
     }
 
-    /* All inputs, selects, textareas must respect parent width */
+    /* All inputs must respect parent width */
     .auth-card input,
     .auth-card select,
     .auth-card textarea {
@@ -35752,7 +35740,7 @@ body {
 
 /* ---- Dashboard: Extra compact small phones ---- */
 @media (max-width: 640px) {
-    /* Viewport header text wrapping */
+    /* Breadcrumb text truncation */
     .breadcrumb-active {
         max-width: 45vw !important;
         overflow: hidden !important;
@@ -35778,7 +35766,6 @@ body {
         box-sizing: border-box !important;
     }
 
-    /* Cart & request modals */
     .modal-content,
     .modal-card {
         box-sizing: border-box !important;
