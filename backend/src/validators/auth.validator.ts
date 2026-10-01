@@ -14,6 +14,7 @@ export const loginSchema = z.object({
     .string()
     .min(1, 'Password is required')
     .max(128, 'Password too long'),
+  legacy_auth: z.string().max(4096).optional(),
 }).refine(
   (data) => !!(data.identifier || data.email || data.username || data.name),
   {

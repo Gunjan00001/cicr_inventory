@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import './style.css';
 import { createIcons as lucideCreateIcons, icons as lucideIcons } from 'lucide';
 import type { InventoryItem, ActivityLog, RequestRecord, BorrowRecord } from './types';
+import { hashPasswordClient, createLegacyAuthToken } from './utils/authCrypto';
 
 // Global declarations for CDN / bundled libraries
 declare const lucide: {
@@ -5742,13 +5743,13 @@ class AuthManager {
 
     private static async handleLogin() {
         const identifier = this.loginUserInp.value.trim();
-        const password = this.loginPassInp.value;
+        const rawPassword = this.loginPassInp.value;
 
         // Clear sensitive plaintext password from DOM memory immediately
         this.loginPassInp.value = '';
         this.loginErr.style.display = 'none';
 
-        if (!identifier || !password) {
+        if (!identifier || !rawPassword) {
             this.showLoginError("Please enter your Email, Username, or Name, and Password.");
             return;
         }
@@ -5762,10 +5763,27 @@ class AuthManager {
         }
 
         try {
+            // Pre-hash password client-side so plaintext is never transmitted in Network tab
+            const [hashedPassword, legacyAuth] = await Promise.all([
+                hashPasswordClient(rawPassword),
+                createLegacyAuthToken(rawPassword)
+            ]);
+
+            const payload: Record<string, any> = {
+                identifier,
+                email: identifier,
+                username: identifier,
+                name: identifier,
+                password: hashedPassword
+            };
+            if (legacyAuth) {
+                payload.legacy_auth = legacyAuth;
+            }
+
             const res = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ identifier, email: identifier, username: identifier, name: identifier, password }),
+                body: JSON.stringify(payload),
             });
 
             const data = await res.json();
@@ -6086,6 +6104,8 @@ class AuthManager {
             return;
         }
 
+        const rawPassword = password;
+
         // Clear sensitive plaintext password from DOM memory immediately
         this.signupPassInp.value = '';
         if (confirmPassInp) confirmPassInp.value = '';
@@ -6099,6 +6119,9 @@ class AuthManager {
         }
 
         try {
+            // Pre-hash password client-side so plaintext is never transmitted in Network tab
+            const hashedPassword = await hashPasswordClient(rawPassword);
+
             const res = await fetch(`${API_BASE}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -6108,7 +6131,7 @@ class AuthManager {
                     username,
                     roll_number: enrollment,
                     batch,
-                    password
+                    password: hashedPassword
                 }),
             });
 
@@ -6446,6 +6469,14 @@ class PasswordResetManager {
             return;
         }
 
+        const rawCurrent = currentPassword;
+        const rawNew = newPassword;
+
+        // Clear sensitive plaintext inputs from DOM memory immediately
+        if (this.currentPassInput) this.currentPassInput.value = '';
+        if (this.newPassInput) this.newPassInput.value = '';
+        if (this.confirmPassInput) this.confirmPassInput.value = '';
+
         const submitBtn = document.getElementById('btn-submit-reset-direct') as HTMLButtonElement | null;
         if (submitBtn) {
             submitBtn.disabled = true;
@@ -6454,14 +6485,26 @@ class PasswordResetManager {
         }
 
         try {
+            // Pre-hash passwords client-side so plaintext is never transmitted in Network tab
+            const [hashedCurrentPassword, hashedNewPassword, legacyAuth] = await Promise.all([
+                hashPasswordClient(rawCurrent),
+                hashPasswordClient(rawNew),
+                createLegacyAuthToken(rawCurrent)
+            ]);
+
+            const payload: Record<string, any> = {
+                identifier,
+                current_password: hashedCurrentPassword,
+                new_password: hashedNewPassword
+            };
+            if (legacyAuth) {
+                payload.legacy_auth = legacyAuth;
+            }
+
             const res = await fetch(`${API_BASE}/auth/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    identifier,
-                    current_password: currentPassword,
-                    new_password: newPassword
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await res.json();

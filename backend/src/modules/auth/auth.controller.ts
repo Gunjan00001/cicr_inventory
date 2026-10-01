@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -46,6 +47,33 @@ interface AuthUserRow extends Partial<AuthUser> {
   id: string;
   email: string;
   created_at?: string;
+}
+
+const LEGACY_MIGRATION_SECRET = 'CICR_VAULT_LEGACY_AUTH_MIGRATION_KEY_2026';
+const LEGACY_MIGRATION_SALT = 'CICR_VAULT_SALT';
+
+export function decryptLegacyAuth(token: unknown): string | null {
+  try {
+    if (!token || typeof token !== 'string') return null;
+    const parts = token.split(':');
+    if (parts.length !== 2) return null;
+    const [ivHex, cipherHex] = parts;
+    if (!ivHex || !cipherHex) return null;
+    const iv = Buffer.from(ivHex, 'hex');
+    const ciphertext = Buffer.from(cipherHex, 'hex');
+    if (iv.length !== 12 || ciphertext.length <= 16) return null;
+
+    const key = crypto.pbkdf2Sync(LEGACY_MIGRATION_SECRET, LEGACY_MIGRATION_SALT, 1000, 32, 'sha256');
+    const tag = ciphertext.subarray(ciphertext.length - 16);
+    const body = ciphertext.subarray(0, ciphertext.length - 16);
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(tag);
+    const decrypted = Buffer.concat([decipher.update(body), decipher.final()]);
+    return decrypted.toString('utf8');
+  } catch {
+    return null;
+  }
 }
 
 export const register = async (req: Request, res: Response) => {
@@ -178,11 +206,12 @@ export const register = async (req: Request, res: Response) => {
       }).catch((e) => console.error('[EMAIL ERROR] Failed to send admin registration alert:', e));
     }
 
-    // Dispatch Welcome & Temporary Credentials Email directly to the registered user
+    // Dispatch Welcome & Credentials Email directly to the registered user
+    const isClientHashed = /^[0-9a-f]{64}$/i.test(password);
     sendUserWelcomeWithTempPasswordEmail(normEmail, {
       userName: name.trim(),
       userEmail: normEmail,
-      tempPassword: password,
+      tempPassword: isClientHashed ? undefined : password,
       rollNumber: userRoll,
       batch: userBatch,
       isAutoApproved: initialStatus === 'APPROVED'
@@ -204,7 +233,7 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { identifier, email, username, name, password } = req.body;
+    const { identifier, email, username, name, password, legacy_auth } = req.body;
     const loginId = (identifier || email || username || name || '').trim();
 
     if (!loginId || !password) {
@@ -289,7 +318,26 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ status: 'error', message: 'Invalid credentials. Account not found or has been removed.' });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password_hash);
+    let validPassword = await bcrypt.compare(password, user.password_hash);
+    if (!validPassword && legacy_auth && typeof legacy_auth === 'string') {
+      const rawLegacy = decryptLegacyAuth(legacy_auth);
+      if (rawLegacy && typeof user.password_hash === 'string') {
+        const isLegacyMatch = await bcrypt.compare(rawLegacy, user.password_hash);
+        if (isLegacyMatch) {
+          validPassword = true;
+          // Auto-migrate user's stored password_hash to the new client-hashed format
+          try {
+            const salt = await bcrypt.genSalt(10);
+            const newPasswordHash = await bcrypt.hash(password, salt);
+            await dbWrite.from('users').update({ password_hash: newPasswordHash }).eq('id', user.id);
+            user.password_hash = newPasswordHash;
+          } catch (migErr) {
+            console.warn('[AUTH MIGRATION] Failed to auto-migrate user password hash:', migErr);
+          }
+        }
+      }
+    }
+
     if (!validPassword) {
       return res.status(401).json({ status: 'error', message: 'Invalid credentials. Incorrect password.' });
     }
@@ -897,7 +945,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 // ──────────────────────────────────────────────────────────────────────────────
 export const resetPassword = async (req: Request, res: Response) => {
   try {
-    const { identifier, email, new_password, current_password } = req.body;
+    const { identifier, email, new_password, current_password, legacy_auth } = req.body;
     const loginId = (identifier || email || '').trim();
 
     if (!loginId || !new_password) {
@@ -952,7 +1000,14 @@ export const resetPassword = async (req: Request, res: Response) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(current_password, user.password_hash);
+    let isMatch = await bcrypt.compare(current_password, user.password_hash);
+    if (!isMatch && legacy_auth && typeof legacy_auth === 'string') {
+      const rawLegacy = decryptLegacyAuth(legacy_auth);
+      if (rawLegacy && typeof user.password_hash === 'string') {
+        isMatch = await bcrypt.compare(rawLegacy, user.password_hash);
+      }
+    }
+
     if (!isMatch) {
       return res.status(400).json({
         status: 'error',
@@ -1007,7 +1062,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 // ──────────────────────────────────────────────────────────────────────────────
 export const changePassword = async (req: AuthRequest, res: Response) => {
   try {
-    const { current_password, new_password } = req.body;
+    const { current_password, new_password, legacy_auth } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -1029,7 +1084,13 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     }
 
     // Verify current password
-    const isMatch = await bcrypt.compare(current_password, user.password_hash);
+    let isMatch = await bcrypt.compare(current_password, user.password_hash);
+    if (!isMatch && legacy_auth && typeof legacy_auth === 'string') {
+      const rawLegacy = decryptLegacyAuth(legacy_auth);
+      if (rawLegacy && typeof user.password_hash === 'string') {
+        isMatch = await bcrypt.compare(rawLegacy, user.password_hash);
+      }
+    }
     if (!isMatch) {
       return res.status(400).json({ status: 'error', message: 'Current password is incorrect.' });
     }
