@@ -458,6 +458,7 @@ body::before {
     justify-content: center;
     z-index: 1500000 !important;
     padding: 20px 14px;
+    box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -566,10 +567,11 @@ html:not(.is-authenticated) #auth-overlay:not(.hidden) ~ #app-container .app-sid
 .auth-card {
     position: relative;
     width: 100%;
-    max-width: 420px;
+    max-width: min(420px, calc(100vw - 28px));
     margin: auto;
     max-height: none;
     padding: 28px 26px;
+    box-sizing: border-box;
     background: rgba(10, 12, 16, 0.94);
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
@@ -597,7 +599,7 @@ html:not(.is-authenticated) #auth-overlay:not(.hidden) ~ #app-container .app-sid
 }
 
 .auth-card.auth-card-wide {
-    max-width: 620px;
+    max-width: min(620px, calc(100vw - 28px));
 }
 
 .auth-card:hover {
@@ -856,7 +858,7 @@ body.theme-light .auth-card input:-webkit-autofill:active {
 
 @media (min-width: 520px) {
     .auth-card.auth-card-wide {
-        max-width: 620px;
+        max-width: min(620px, calc(100vw - 28px));
         padding: 26px 30px;
     }
 
@@ -875,29 +877,73 @@ body.theme-light .auth-card input:-webkit-autofill:active {
 }
 
 @media (max-width: 519.98px) {
-    .auth-card {
-        padding: 22px 18px;
-        border-radius: 14px;
+    .auth-overlay {
+        padding: 16px 10px;
+        align-items: flex-start;
+        padding-top: max(24px, env(safe-area-inset-top, 24px));
+        padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+    }
+
+    .auth-card,
+    .auth-card.auth-card-wide {
+        width: 100% !important;
+        max-width: calc(100vw - 20px) !important;
+        padding: 22px 16px !important;
+        border-radius: 14px !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
         background: #0e1017 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
     }
 
-    body.theme-light .auth-card {
+    body.theme-light .auth-card,
+    body.theme-light .auth-card.auth-card-wide {
         background: #ffffff !important;
     }
 
-    body.theme-mono .auth-card {
+    body.theme-mono .auth-card,
+    body.theme-mono .auth-card.auth-card-wide {
         background: #141412 !important;
+    }
+
+    /* Stack signup grid to single column on small phones */
+    .signup-form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0 !important;
+    }
+
+    .signup-form-grid .signup-grid-full {
+        grid-column: 1 !important;
     }
 
     .auth-card .form-group {
         margin-bottom: 10px;
     }
 
-    .auth-card .form-group input {
+    .auth-card .form-group input,
+    .auth-card .form-group select {
+        width: 100% !important;
         height: 44px !important;
         font-size: 16px !important; /* Eliminates iOS auto-zoom screen flickering */
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+    }
+
+    .input-icon-wrapper {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .input-icon-wrapper input {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+    }
+
+    .auth-card .btn-block {
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 }
 
@@ -6642,7 +6688,10 @@ input:-webkit-autofill:active {
     }
 
     .auth-card {
-        padding: 30px 20px;
+        /* Padding handled by the 519.98px breakpoint above with !important */
+        max-width: calc(100vw - 20px) !important;
+        padding: 20px 14px !important;
+        box-sizing: border-box !important;
     }
 
     .explorer-stats-row {
@@ -6985,6 +7034,35 @@ input:-webkit-autofill:active {
     .welcome-video-card {
         width: 140px;
         height: 140px;
+    }
+
+    /* Proper safe-area padding on very small phones */
+    .welcome-screen {
+        padding: max(80px, calc(env(safe-area-inset-top) + 70px)) 20px 20px !important;
+        gap: 28px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .welcome-branding {
+        left: 14px !important;
+        top: max(14px, env(safe-area-inset-top)) !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .welcome-huge-text span {
+        font-size: 58px !important;
+        letter-spacing: -2px !important;
+    }
+
+    .welcome-heading {
+        font-size: 22px !important;
+    }
+
+    .welcome-subtitle {
+        font-size: 12px !important;
+        padding: 0 4px !important;
     }
 }
 
@@ -35545,5 +35623,184 @@ html, body {
     }
 }
 
+/* ==========================================================================
+   COMPREHENSIVE MOBILE MEDIA QUERY FIXES
+   Prevents horizontal overflow, ensures box-sizing, and fixes layouts on
+   all small-phone viewports (< 520px).
+   ========================================================================== */
 
+/* Global overflow guard: prevent any child from causing horizontal scroll */
+html,
+body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
 
+/* Ensure box-sizing is applied globally for reliable width calculations */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Safe-area inset support for notched phones (iPhone X+, Android cutouts) */
+@supports (padding: max(0px)) {
+    .auth-overlay {
+        padding-top: max(20px, env(safe-area-inset-top)) !important;
+        padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+        padding-left: max(14px, env(safe-area-inset-left)) !important;
+        padding-right: max(14px, env(safe-area-inset-right)) !important;
+    }
+}
+
+/* ---- Small Phone: Auth Card ---- */
+@media (max-width: 519.98px) {
+    /* Prevent any auth form element from overflowing */
+    .auth-card form,
+    .auth-card .form-group,
+    .auth-card .signup-form-grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    /* All inputs, selects, textareas must respect parent width */
+    .auth-card input,
+    .auth-card select,
+    .auth-card textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Password toggle must not cause overflow */
+    .password-toggle-btn {
+        flex-shrink: 0;
+    }
+
+    /* Auth header logo sizing on small screens */
+    .auth-logo {
+        height: 36px !important;
+        width: 36px !important;
+    }
+
+    .auth-header h2 {
+        font-size: 15px !important;
+        letter-spacing: 1px !important;
+    }
+
+    /* Tab buttons - ensure full width, no overflow */
+    .auth-tab-switch {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .auth-tab-btn {
+        font-size: 11px !important;
+        padding: 7px 10px !important;
+        gap: 4px !important;
+    }
+
+    /* Form labels - smaller on tiny screens */
+    .auth-card .form-label,
+    .auth-card label {
+        font-size: 11px !important;
+    }
+
+    /* Submit button */
+    .auth-card .btn-block {
+        height: 42px !important;
+        font-size: 12.5px !important;
+    }
+
+    /* Error/success messages - prevent overflow */
+    .auth-error-msg,
+    .auth-success-msg {
+        font-size: 11px !important;
+        padding: 8px 10px !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    /* Password match status */
+    .password-match-status {
+        font-size: 10px !important;
+    }
+}
+
+/* ---- Dashboard: Ensure main viewport wrapper never overflows ---- */
+@media (max-width: 900.98px) {
+    .main-viewport-wrapper {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Prevent tables from causing horizontal scroll */
+    .hw-ledger-table-wrap,
+    .requests-table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ---- Dashboard: Extra compact small phones ---- */
+@media (max-width: 640px) {
+    /* Viewport header text wrapping */
+    .breadcrumb-active {
+        max-width: 45vw !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    /* Action pills: full width stack */
+    .dashboard-action-pills {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .action-pill-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    /* Prevent modals from overflowing laterally */
+    .modal-overlay {
+        padding: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Cart & request modals */
+    .modal-content,
+    .modal-card {
+        box-sizing: border-box !important;
+    }
+}
+
+/* ---- Navbar (landing page only) - small phone fixes ---- */
+@media (max-width: 480px) {
+    .navbar-wrapper {
+        padding: 0 10px !important;
+        top: 8px !important;
+        box-sizing: border-box !important;
+    }
+
+    .nav-capsule {
+        padding: 10px 14px !important;
+        border-radius: 16px !important;
+        box-sizing: border-box !important;
+    }
+
+    .nav-link {
+        font-size: 10px !important;
+        padding: 5px 8px !important;
+    }
+}
