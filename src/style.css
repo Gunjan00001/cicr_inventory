@@ -607,39 +607,52 @@ html:not(.is-authenticated) #auth-overlay:not(.hidden) ~ #app-container .app-sid
 }
 
 .auth-header {
-    text-align: center;
-    margin-bottom: 14px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    margin: 0 auto 16px auto !important;
+    width: 100% !important;
 }
 
 .auth-logo {
-    height: 42px;
-    width: 42px;
+    height: 44px;
+    width: 44px;
     object-fit: contain;
-    margin-bottom: 6px;
+    margin: 0 auto 8px auto !important;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(0, 0, 0, 0.5);
     padding: 3px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    display: block !important;
 }
 
 .auth-header h2 {
     font-family: 'Orbitron', sans-serif;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 900;
     letter-spacing: 1.5px;
     background: linear-gradient(90deg, var(--white), #9ca3af);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 1px;
+    margin: 0 auto 4px auto !important;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
 }
 
 .auth-header p {
-    font-size: 8.5px;
+    font-size: 9px;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--text-muted);
-    letter-spacing: 0.8px;
-    margin: 0;
+    letter-spacing: 0.9px;
+    margin: 0 auto !important;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
 }
 
 /* Interactive Auth Tabs */
@@ -34597,13 +34610,13 @@ body.theme-light .vault-search-row {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 16px !important;
+    gap: 14px !important;
     flex-wrap: wrap !important;
     width: 100% !important;
     box-sizing: border-box !important;
 }
 
-/* 6. Search Input Wrap: Standardized 48px Height & Zero-Padding Container */
+/* 6. Search Input Wrap: Harmonized 44px Height & Centered Geometry */
 .vault-search-input-wrap,
 html[data-theme="mono"] .vault-search-input-wrap,
 body.theme-mono .vault-search-input-wrap,
@@ -34611,12 +34624,12 @@ html[data-theme="decent"] .vault-search-input-wrap,
 body.theme-decent .vault-search-input-wrap,
 html[data-theme="light"] .vault-search-input-wrap,
 body.theme-light .vault-search-input-wrap {
-    flex: 1 1 340px !important;
-    min-width: 260px !important;
+    flex: 1 1 320px !important;
+    min-width: 240px !important;
     max-width: 100% !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    max-height: 48px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     position: relative !important;
     display: flex !important;
     align-items: center !important;
@@ -34626,7 +34639,7 @@ body.theme-light .vault-search-input-wrap {
     overflow: hidden !important;
 }
 
-/* 7. Search Icon: Absolute Centered at left: 16px (18px x 18px) */
+/* 7. Search Icon: Centered at left: 14px (17px x 17px) */
 .vault-search-input-wrap .search-icon,
 .vault-search-input-wrap i[data-lucide="search"],
 html[data-theme="mono"] .vault-search-input-wrap .search-icon,
@@ -34636,13 +34649,13 @@ body.theme-decent .vault-search-input-wrap .search-icon,
 html[data-theme="light"] .vault-search-input-wrap .search-icon,
 body.theme-light .vault-search-input-wrap .search-icon {
     position: absolute !important;
-    left: 16px !important;
+    left: 14px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    width: 18px !important;
-    height: 18px !important;
-    min-width: 18px !important;
-    max-width: 18px !important;
+    width: 17px !important;
+    height: 17px !important;
+    min-width: 17px !important;
+    max-width: 17px !important;
     pointer-events: none !important;
     z-index: 3 !important;
     display: inline-flex !important;
@@ -34652,7 +34665,7 @@ body.theme-light .vault-search-input-wrap .search-icon {
     padding: 0 !important;
 }
 
-/* 8. Search Input: 48px Left Padding to Guarantee Zero Icon/Placeholder Overlap */
+/* 8. Search Input: 44px Left Padding & 44px Height */
 .vault-search-input-wrap input,
 #search-input,
 html[data-theme="mono"] .vault-search-input-wrap input,
@@ -34662,16 +34675,16 @@ body.theme-decent .vault-search-input-wrap input,
 html[data-theme="light"] .vault-search-input-wrap input,
 body.theme-light .vault-search-input-wrap input {
     width: 100% !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    max-height: 48px !important;
-    line-height: 48px !important;
-    padding-left: 48px !important; /* 16px icon left + 18px icon width + 14px breathing room = 48px */
-    padding-right: 42px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    line-height: 44px !important;
+    padding-left: 44px !important;
+    padding-right: 40px !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     border-radius: 12px !important;
-    font-size: 14px !important;
+    font-size: 13.5px !important;
     font-weight: 500 !important;
     letter-spacing: normal !important;
     box-sizing: border-box !important;
@@ -34679,11 +34692,11 @@ body.theme-light .vault-search-input-wrap input {
     vertical-align: middle !important;
 }
 
-/* Clear Search Button */
+/* Clear Search Button: Cleanly Centered */
 .clear-search-btn,
 .vault-search-input-wrap .clear-search-btn {
     position: absolute !important;
-    right: 14px !important;
+    right: 12px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     z-index: 4 !important;
@@ -34691,12 +34704,15 @@ body.theme-light .vault-search-input-wrap input {
     border: none !important;
     cursor: pointer !important;
     padding: 4px !important;
+    width: 26px !important;
+    height: 26px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    border-radius: 6px !important;
 }
 
-/* Placeholder Styling: Readable, Vertically Centered, Never Collides with Icon */
+/* Placeholder Styling: Readable, Vertically Centered */
 .vault-search-input-wrap input::placeholder,
 #search-input::placeholder,
 html[data-theme="mono"] .vault-search-input-wrap input::placeholder,
@@ -34712,7 +34728,7 @@ body.theme-light .vault-search-input-wrap input::placeholder {
     opacity: 0.75 !important;
 }
 
-/* 9. Category Filter Buttons: Equal Height (42px) & Vertical Centering */
+/* 9. Category Filter Buttons: Equal 44px Height & Vertical Alignment */
 .vault-category-pills,
 html[data-theme="mono"] .vault-category-pills,
 body.theme-mono .vault-category-pills,
@@ -34734,11 +34750,11 @@ html[data-theme="decent"] .vault-category-pills .tag-pill,
 body.theme-decent .vault-category-pills .tag-pill,
 html[data-theme="light"] .vault-category-pills .tag-pill,
 body.theme-light .vault-category-pills .tag-pill {
-    height: 42px !important;
-    min-height: 42px !important;
-    max-height: 42px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     padding: 0 16px !important;
-    border-radius: 10px !important;
+    border-radius: 12px !important;
     font-size: 13px !important;
     font-weight: 600 !important;
     display: inline-flex !important;
@@ -34748,7 +34764,7 @@ body.theme-light .vault-category-pills .tag-pill {
     box-sizing: border-box !important;
     white-space: nowrap !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .vault-category-pills .tag-pill i,
@@ -34813,6 +34829,47 @@ body.theme-light .vault-category-pills .tag-pill {
     html[data-theme="light"] .vault-search-input-wrap,
     body.theme-light .vault-search-input-wrap {
         width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    /* Silky-Smooth Touch-Swipable Category Pills on Mobile/Tablet */
+    .vault-category-pills,
+    html[data-theme="mono"] .vault-category-pills,
+    body.theme-mono .vault-category-pills,
+    html[data-theme="decent"] .vault-category-pills,
+    body.theme-decent .vault-category-pills,
+    html[data-theme="light"] .vault-category-pills,
+    body.theme-light .vault-category-pills {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 8px !important;
+        padding: 2px 2px 6px 2px !important;
+        box-sizing: border-box !important;
+    }
+
+    .vault-category-pills::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+
+    .vault-category-pills .tag-pill,
+    html[data-theme="mono"] .vault-category-pills .tag-pill,
+    body.theme-mono .vault-category-pills .tag-pill,
+    html[data-theme="decent"] .vault-category-pills .tag-pill,
+    body.theme-decent .vault-category-pills .tag-pill,
+    html[data-theme="light"] .vault-category-pills .tag-pill,
+    body.theme-light .vault-category-pills .tag-pill {
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
     }
 }
 
@@ -35314,8 +35371,8 @@ button,
     letter-spacing: normal !important;
 }
 
-/* 13. Consistent Text Alignment */
-h1, h2, h3, h4, h5, h6,
+/* 13. Consistent Text Alignment & Hierarchy */
+:is(h1, h2, h3, h4, h5, h6):not(.auth-header *):not(#auth-overlay *):not(.empty-state *):not(.text-center),
 .vault-top-bar,
 .team-showcase-header,
 .dashboard-greeting-card,
@@ -35327,8 +35384,18 @@ h1, h2, h3, h4, h5, h6,
 
 .empty-state,
 .empty-state-title,
-.empty-state-desc {
+.empty-state-desc,
+.auth-header,
+.auth-header h2,
+.auth-header p,
+.auth-header #auth-subtitle,
+#auth-overlay .auth-header,
+#auth-overlay .auth-header h2,
+#auth-overlay .auth-header p,
+#auth-overlay #auth-subtitle {
     text-align: center !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 /* ==========================================================================
@@ -35372,5 +35439,67 @@ body.theme-decent {
     overflow-y: visible !important;
     max-height: none !important;
 }
+
+/* ==========================================================================
+   HIGH-PERFORMANCE RENDERING, GPU ACCELERATION & MOBILE TOUCH OPTIMIZATIONS
+   ========================================================================== */
+/* Hardware-accelerated rendering for smooth 60fps animations & scrolling */
+.viewport-header,
+.app-sidebar,
+.mobile-sidebar-toggle,
+.header-cart-btn,
+.header-notif-btn,
+.vault-toolbar-card,
+.vault-metric-card,
+.stat-bubble-new,
+.tag-pill,
+.auth-card,
+.modal-card,
+.floating-cart-fab {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Fast tap response & eliminate 300ms touch delay on mobile */
+button,
+a,
+input,
+select,
+.tag-pill,
+.sidebar-nav-link,
+.breadcrumb-btn,
+.auth-tab-btn,
+.header-cart-btn,
+.header-notif-btn {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* CSS containment for zero layout thrashing on heavy component lists */
+.inventory-card,
+.dash-card,
+.vault-metric-card,
+.stat-bubble-new,
+.team-member-card {
+    contain: layout style;
+}
+
+/* Modals & drawers overscroll containment (prevents background scroll-chaining) */
+.auth-overlay,
+.modal-overlay,
+.notif-drawer,
+.cart-modal-card {
+    overscroll-behavior: contain;
+}
+
+/* Smooth font rendering across all engines */
+html, body {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 
 
