@@ -230,8 +230,12 @@ CICR_Inventory/
 │   ├── package.json
 │   ├── render.yaml                      # Render deployment specification
 │   └── tsconfig.json
-├── src/                                 # Vite + Three.js Frontend
-│   ├── main.ts                          # UI controller, dynamic API routing, canvas VFX loops
+├── src/                                 # Vite + Three.js Frontend (modular)
+│   ├── main.ts                          # Entry point: manager imports, window wiring, bootstrap
+│   ├── core/                            # Shared helpers (state, api, ui, session, identity, domain)
+│   ├── admin-audit.ts                   # Pure audit-stream helpers for admin.ts
+│   ├── ui/                              # Pure HTML builders (modal-templates.ts)
+│   ├── <manager>.ts                     # One module per manager (toast, modal, admin, auth, …)
 │   ├── types.ts                         # TypeScript domain models
 │   ├── style.css                        # Glassmorphism cyber UI, responsive grid, theme variables
 │   └── assets/                          # Static assets and icons
@@ -240,7 +244,8 @@ CICR_Inventory/
 │   └── logo.png                         # CICR emblem
 ├── docs/                                # Architectural guides and calculations
 │   ├── BACKEND_HANDOFF.md
-│   └── BOTE_ESTIMATION.md               # Email throughput and scalability derivation
+│   ├── BOTE_ESTIMATION.md               # Email throughput and scalability derivation
+│   └── FRONTEND_STRUCTURE.md            # Frontend module map (post-split)
 ├── index.html                           # Root HTML, navigation, modals, and canvas layers
 ├── package.json
 ├── render.yaml                          # Root Render blueprint

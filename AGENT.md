@@ -28,9 +28,13 @@ and gives admins a dashboard with stock stats and an audit trail.
 ```
 cicr-inventory/
 ├── src/                        # Frontend (Vite + TS), served from index.html
-│   ├── main.ts
-│   ├── types.ts                # Frontend-side interfaces (older/local shapes)
-│   ├── style.css
+│   ├── main.ts                 # Entry: manager imports, window wiring, DOMContentLoaded bootstrap
+│   ├── core/                   # Shared helpers: state, api, ui, session, identity, domain
+│   ├── admin-audit.ts          # Pure audit-stream helpers used by admin.ts
+│   ├── ui/                     # Pure HTML builders (modal-templates.ts)
+│   ├── toast.ts … theme.ts     # One module per manager (Toast, Modal, Admin, Auth, …)
+│   ├── types.ts                # Frontend domain types
+│   ├── style.css               # Styling + the three theme systems
 │   └── assets/
 ├── public/                     # Static assets
 ├── backend/                    # Express + TypeScript API
@@ -57,6 +61,10 @@ cicr-inventory/
 ├── package.json                 # frontend package.json (root)
 └── tsconfig.json
 ```
+
+> The frontend is modular now: `src/main.ts` is only the entry point, each manager
+> lives in its own file, and shared code lives in `src/core/`. See
+> **`docs/FRONTEND_STRUCTURE.md`** for the full per-module map.
 
 ## 4. Where the real logic lives
 

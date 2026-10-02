@@ -1,3 +1,7 @@
+/**
+ * Shared frontend domain types: BorrowRecord, RequestRecord, InventoryItem,
+ * ActivityLog, UserDatabase. */
+
 export interface BorrowRecord {
     id?: string;
     userId?: string;
